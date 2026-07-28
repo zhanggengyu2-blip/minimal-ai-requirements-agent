@@ -1,0 +1,11 @@
+{
+  "name": "极简AI需求管理智能体原型生成器",
+  "id": "9837426512098743261",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

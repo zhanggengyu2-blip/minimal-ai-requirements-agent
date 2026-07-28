@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://minimal-ai.local/schemas/requirement-analysis-v1.json",
+  "title": "RequirementAnalysis",
+  "description": "Dify 需求分析固定输出。字段名与 requirement 表中的 AI 可写字段一一对应。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "standard_content",
+    "business_goal",
+    "type",
+    "priority",
+    "is_fake",
+    "fake_reason",
+    "is_duplicate",
+    "related_id",
+    "reference_rule",
+    "analysis_summary"
+  ],
+  "properties": {
+    "standard_content": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "description": "标准化后的正式需求文案，对应 requirement.standard_content。"
+    },
+    "business_goal": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "底层业务诉求或真实目标，对应 requirement.business_goal。"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["NEW_FEATURE", "BUG", "OPTIMIZATION"],
+      "description": "需求类型，对应 requirement.type。"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3"],
+      "description": "需求优先级，对应 requirement.priority。"
+    },
+    "is_fake": {
+      "type": "boolean",
+      "description": "是否为伪需求，对应 requirement.is_fake。"
+    },
+    "fake_reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "真伪判定依据；无论 is_fake 取值为何都必须填写，对应 requirement.fake_reason。"
+    },
+    "is_duplicate": {
+      "type": "boolean",
+      "description": "是否为重复需求，对应 requirement.is_duplicate。"
+    },
+    "related_id": {
+      "type": "string",
+      "maxLength": 32,
+      "description": "相似需求 ID；无匹配时固定输出空字符串，对应 requirement.related_id。"
+    },
+    "reference_rule": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "本次判定引用的知识库规则编号及摘要，对应 requirement.reference_rule。"
+    },
+    "analysis_summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "面向页面展示的AI分析总结，简明概括需求价值、类型、优先级、真伪及查重结论，对应 requirement.analysis_summary。"
+    }
+  }
+}
