@@ -32,6 +32,47 @@ class RequirementService:
         self.db.commit()
         self.db.refresh(requirement)
 
+        return await self.analyze_existing(
+            requirement, user=payload.created_by or "anonymous"
+        )
+
+    async def create_from_interview(
+        self,
+        *,
+        project_id: str,
+        raw_content: str,
+        clarified_content: str,
+        interview_session_id: str,
+        interview_rounds: int,
+        completeness_score: int,
+        created_by: str | None,
+    ) -> Requirement:
+        project = self.db.get(Project, project_id)
+        if project is None:
+            raise NotFoundError("项目不存在")
+
+        requirement = Requirement(
+            project_id=project_id,
+            raw_content=raw_content,
+            clarified_content=clarified_content,
+            interview_session_id=interview_session_id,
+            interview_rounds=interview_rounds,
+            completeness_score=completeness_score,
+            created_by=created_by,
+            analysis_status=AnalysisStatus.PENDING,
+        )
+        self.db.add(requirement)
+        self.db.commit()
+        self.db.refresh(requirement)
+        return await self.analyze_existing(
+            requirement, user=created_by or f"interview:{interview_session_id}"
+        )
+
+    async def analyze_existing(self, requirement: Requirement, *, user: str) -> Requirement:
+        project = self.db.get(Project, requirement.project_id)
+        if project is None:
+            raise NotFoundError("项目不存在")
+
         requirement.analysis_status = AnalysisStatus.ANALYZING
         requirement.analysis_error_code = None
         requirement.analysis_error_message = None
@@ -42,9 +83,9 @@ class RequirementService:
             result = await self.dify.analyze_requirement(
                 project_name=project.name,
                 project_context=project.project_context,
-                raw_content=requirement.raw_content,
+                raw_content=requirement.clarified_content or requirement.raw_content,
                 candidates=candidates,
-                user=payload.created_by or "anonymous",
+                user=user,
             )
         except AppError as exc:
             requirement.analysis_status = AnalysisStatus.FAILED

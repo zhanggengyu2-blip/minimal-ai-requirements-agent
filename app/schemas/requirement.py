@@ -24,6 +24,10 @@ class RequirementRead(ORMModel):
     id: str
     project_id: str
     raw_content: str
+    interview_session_id: str | None
+    clarified_content: str | None
+    interview_rounds: int
+    completeness_score: int | None
     standard_content: str | None
     business_goal: str | None
     type: RequirementType | None

@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -50,6 +50,45 @@ class InvitationStatus(str, enum.Enum):
     UNUSED = "UNUSED"
     USED = "USED"
     DISABLED = "DISABLED"
+
+
+class InterviewStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    INTERVIEWING = "INTERVIEWING"
+    CONFIRMING = "CONFIRMING"
+    SUBMITTED = "SUBMITTED"
+    ABANDONED = "ABANDONED"
+    FAILED = "FAILED"
+
+
+class InterviewMessageRole(str, enum.Enum):
+    USER = "USER"
+    AGENT = "AGENT"
+    SYSTEM_EVENT = "SYSTEM_EVENT"
+
+
+class InterviewActionType(str, enum.Enum):
+    INITIAL = "INITIAL"
+    ANSWER = "ANSWER"
+    SKIP = "SKIP"
+    UNKNOWN = "UNKNOWN"
+    DIRECT_SUMMARY = "DIRECT_SUMMARY"
+
+
+class SourceChannel(str, enum.Enum):
+    MANAGEMENT_WEB = "MANAGEMENT_WEB"
+    PRODUCT_WEB = "PRODUCT_WEB"
+    MINI_PROGRAM = "MINI_PROGRAM"
+    WECHAT = "WECHAT"
+    WECOM = "WECOM"
+    FEISHU = "FEISHU"
+    OTHER = "OTHER"
+
+
+class ProjectResolveMode(str, enum.Enum):
+    USER_SELECTED = "USER_SELECTED"
+    ENTRY_BOUND = "ENTRY_BOUND"
+    CHANNEL_MAPPED = "CHANNEL_MAPPED"
 
 
 class Department(Base):
@@ -114,6 +153,100 @@ class Project(Base):
     requirements: Mapped[list["Requirement"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
+    interview_sessions: Mapped[list["InterviewSession"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
+
+
+class InterviewSession(Base):
+    __tablename__ = "interview_session"
+    __table_args__ = (
+        Index("ix_interview_creator_status_updated", "created_by", "status", "updated_time"),
+        Index("ix_interview_project_status_created", "project_id", "status", "created_time"),
+        UniqueConstraint(
+            "source_channel", "source_message_id", name="uq_interview_source_message"
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_by: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
+    source_channel: Mapped[SourceChannel] = mapped_column(
+        Enum(SourceChannel, native_enum=False), default=SourceChannel.MANAGEMENT_WEB, nullable=False
+    )
+    source_user_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    source_message_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    entry_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    project_resolve_mode: Mapped[ProjectResolveMode] = mapped_column(
+        Enum(ProjectResolveMode, native_enum=False),
+        default=ProjectResolveMode.USER_SELECTED,
+        nullable=False,
+    )
+    status: Mapped[InterviewStatus] = mapped_column(
+        Enum(InterviewStatus, native_enum=False),
+        default=InterviewStatus.DRAFT,
+        nullable=False,
+        index=True,
+    )
+    raw_content: Mapped[str] = mapped_column(Text, nullable=False)
+    request_type: Mapped[RequirementType | None] = mapped_column(
+        Enum(RequirementType, native_enum=False), nullable=True
+    )
+    structured_data: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    skipped_fields: Mapped[str] = mapped_column(Text, default="[]", nullable=False)
+    completeness_score: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    round_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    consecutive_skip_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    consecutive_agent_failures: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    stop_reason: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    summary_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    clarified_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    requirement_id: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True)
+    confirm_idempotency_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_error_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    agent_error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    prompt_version: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    project: Mapped[Project] = relationship(back_populates="interview_sessions")
+    messages: Mapped[list["InterviewMessage"]] = relationship(
+        back_populates="session",
+        cascade="all, delete-orphan",
+        order_by="InterviewMessage.sequence_no",
+    )
+
+
+class InterviewMessage(Base):
+    __tablename__ = "interview_message"
+    __table_args__ = (
+        UniqueConstraint("session_id", "sequence_no", name="uq_interview_message_sequence"),
+        UniqueConstraint("session_id", "client_message_id", name="uq_interview_client_message"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    session_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("interview_session.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    sequence_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    role: Mapped[InterviewMessageRole] = mapped_column(
+        Enum(InterviewMessageRole, native_enum=False), nullable=False
+    )
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    action_type: Mapped[InterviewActionType | None] = mapped_column(
+        Enum(InterviewActionType, native_enum=False), nullable=True
+    )
+    target_field: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    reason_code: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    client_message_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_run_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    session: Mapped[InterviewSession] = relationship(back_populates="messages")
 
 
 class Requirement(Base):
@@ -128,6 +261,10 @@ class Requirement(Base):
         String(32), ForeignKey("project.id", ondelete="CASCADE"), nullable=False, index=True
     )
     raw_content: Mapped[str] = mapped_column(Text, nullable=False)
+    interview_session_id: Mapped[str | None] = mapped_column(String(32), nullable=True, unique=True)
+    clarified_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    interview_rounds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    completeness_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # 以下 10 个字段与 Dify Workflow 固定输出严格同名。
     standard_content: Mapped[str | None] = mapped_column(Text, nullable=True)

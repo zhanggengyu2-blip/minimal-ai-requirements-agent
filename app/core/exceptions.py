@@ -41,3 +41,16 @@ class DifyOutputError(DifyError):
     def __init__(self, details: Any = None) -> None:
         super().__init__("AI 返回结果格式不符合约定", code="DIFY_OUTPUT_INVALID", details=details)
 
+
+class DifyInterviewTimeoutError(DifyError):
+    def __init__(self) -> None:
+        super().__init__("AI 访谈超时，内容已保存", code="DIFY_INTERVIEW_TIMEOUT")
+
+
+class DifyInterviewOutputError(DifyError):
+    def __init__(self, details: Any = None) -> None:
+        super().__init__(
+            "AI 访谈返回结果格式不符合约定",
+            code="DIFY_INTERVIEW_OUTPUT_INVALID",
+            details=details,
+        )
