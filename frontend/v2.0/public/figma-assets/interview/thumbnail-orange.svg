@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Thumbnail">
+<rect width="46" height="46" rx="6" fill="#FFF5E8"/>
+<rect id="Image Sky" width="46" height="28" fill="#DCEBFF"/>
+<path id="Mountain" d="M17.5 19L28.3253 34H6.67468L17.5 19Z" fill="#6EA8FE"/>
+<path id="Mountain 2" d="M31 15L41.3923 33H20.6077L31 15Z" fill="#2F73F6"/>
+<circle id="Sun" cx="34.5" cy="10.5" r="3.5" fill="#FDB022"/>
+</g>
+</svg>

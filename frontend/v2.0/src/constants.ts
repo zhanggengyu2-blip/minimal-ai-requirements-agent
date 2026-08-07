@@ -20,9 +20,9 @@ export const PRIORITY: Record<RequirementPriority, string> = {
 }
 
 export const REQUIREMENT_TYPE: Record<RequirementType, string> = {
-  NEW_FEATURE: '新功能',
-  BUG: '缺陷',
-  OPTIMIZATION: '优化',
+  NEW_FEATURE: '新增功能',
+  BUG: '报错',
+  OPTIMIZATION: '体验优化',
 }
 
 export const ANALYSIS_STATUS: Record<AnalysisStatus, string> = {

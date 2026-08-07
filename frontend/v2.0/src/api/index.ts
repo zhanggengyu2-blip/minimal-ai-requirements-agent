@@ -17,6 +17,8 @@ export type DepartmentStatus = components['schemas']['DepartmentStatus']
 export type Invitation = components['schemas']['InvitationRead']
 export type InvitationCreate = components['schemas']['InvitationCreate']
 export type InvitationStatus = components['schemas']['InvitationStatus']
+export type InterviewSession = components['schemas']['InterviewSessionRead']
+export type InterviewMessage = components['schemas']['InterviewMessageRead']
 export type ProjectListParams = NonNullable<operations['list_projects_api_v1_projects_get']['parameters']['query']>
 export type RequirementListParams = NonNullable<operations['list_requirements_api_v1_requirements_get']['parameters']['query']>
 export type DepartmentListParams = NonNullable<operations['list_departments_api_v1_departments_get']['parameters']['query']>
@@ -43,6 +45,8 @@ export const requirementApi = {
     http.post<never, Requirement>('/requirements', data),
   detail: (requirementId: string) =>
     http.get<never, Requirement>(`/requirements/${requirementId}`),
+  interview: (requirementId: string) =>
+    http.get<never, InterviewSession>(`/requirements/${requirementId}/interview`),
   batchAnalyze: (requirementIds: string[]) =>
     http.post<never, BatchAnalyzeAccepted>('/requirements/batch-analyze', {
       requirement_ids: requirementIds,

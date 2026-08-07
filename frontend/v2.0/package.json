@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 3000",
     "build": "vue-tsc -b && vite build",
-    "generate:api": "openapi-typescript ./app/openapi.json -o ./src/api/generated.ts"
+    "generate:api": "openapi-typescript ../../backend/v2.0/app/openapi.json -o ./src/api/generated.ts"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

@@ -1,0 +1,17 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Agent Avatar">
+<path id="Vector" d="M26 51C39.8071 51 51 39.8071 51 26C51 12.1929 39.8071 1 26 1C12.1929 1 1 12.1929 1 26C1 39.8071 12.1929 51 26 51Z" fill="#256FF5"/>
+<path id="Vector_2" d="M31 17H21C16.5817 17 13 20.5817 13 25V31C13 35.4183 16.5817 39 21 39H31C35.4183 39 39 35.4183 39 31V25C39 20.5817 35.4183 17 31 17Z" fill="white"/>
+<path id="Vector_3" d="M21 30.5C22.3807 30.5 23.5 29.3807 23.5 28C23.5 26.6193 22.3807 25.5 21 25.5C19.6193 25.5 18.5 26.6193 18.5 28C18.5 29.3807 19.6193 30.5 21 30.5Z" fill="#256FF5"/>
+<path id="Vector_4" d="M31 30.5C32.3807 30.5 33.5 29.3807 33.5 28C33.5 26.6193 32.3807 25.5 31 25.5C29.6193 25.5 28.5 26.6193 28.5 28C28.5 29.3807 29.6193 30.5 31 30.5Z" fill="#256FF5"/>
+<g id="Vector_5">
+<path d="M20 34H32Z" fill="black"/>
+<path d="M20 34H32" stroke="#256FF5" stroke-width="2" stroke-linecap="round"/>
+</g>
+<g id="Vector_6">
+<path d="M26 12V17Z" fill="black"/>
+<path d="M26 12V17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</g>
+<path id="Vector_7" d="M26 13C27.1046 13 28 12.1046 28 11C28 9.89543 27.1046 9 26 9C24.8954 9 24 9.89543 24 11C24 12.1046 24.8954 13 26 13Z" fill="white"/>
+</g>
+</svg>
