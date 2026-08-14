@@ -2,7 +2,12 @@
 .venv*/
 __pycache__/
 .pytest_cache/
+.ruff_cache/
+.obsidian/
+.coverage
+htmlcov/
 *.py[cod]
+*.log
 *.db
 *.db-shm
 *.db-wal
@@ -15,5 +20,5 @@ dist/
 *.egg-info/
 vite.config.js
 vite.config.d.ts
-UI设计图/
-image.png
+/product/
+/design/

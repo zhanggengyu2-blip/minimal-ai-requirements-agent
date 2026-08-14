@@ -1,0 +1,20 @@
+# 已在 Python 3.12.13 本地测试环境验证。
+# Web 框架与 ASGI 服务器
+fastapi==0.139.2
+uvicorn[standard]==0.51.0
+
+# Dify Workflow 异步 HTTP 调用
+httpx==0.28.1
+
+# 环境变量与请求/响应数据校验
+pydantic-settings==2.14.2
+
+# multipart/form-data 图片上传
+python-multipart==0.0.20
+
+# SQLite ORM
+SQLAlchemy==2.0.51
+
+# 本地自动化测试
+pytest==8.4.2
+pytest-asyncio==0.26.0

@@ -9,6 +9,7 @@
 确保 FastAPI 服务已运行在 `http://127.0.0.1:8000`，然后执行：
 
 ```bash
+cd frontend/v2.0
 pnpm install
 pnpm run generate:api
 pnpm run dev
@@ -24,7 +25,7 @@ VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
 
 ## 类型与构建
 
-`src/api/generated.ts` 由 `../../backend/v2.0/app/openapi.json` 自动生成，请勿手动修改。后端接口变更后执行：
+`src/api/generated.ts` 由 `../../backend/v2.0/app/openapi.json` 自动生成，请勿手动修改。该路径由 `package.json` 中的脚本从前端目录解析，已对应新的职能分层目录。后端接口变更后执行：
 
 ```bash
 pnpm run generate:api
