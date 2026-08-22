@@ -20,5 +20,11 @@ dist/
 *.egg-info/
 vite.config.js
 vite.config.d.ts
-/product/
-/design/
+/product/*
+!/product/v3.0/
+/product/v3.0/*
+!/product/v3.0/*.md
+/design/*
+!/design/v3.0/
+/design/v3.0/*
+!/design/v3.0/*.md
