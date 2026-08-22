@@ -15,12 +15,15 @@ os.environ["INTERVIEW_IMAGE_STORAGE_DIR"] = str(TEST_UPLOAD_DIR)
 @pytest.fixture(autouse=True)
 def isolated_test_runtime():
     """Give every test a fresh database and attachment directory."""
-    from app.db.session import engine, init_db
+    from app.db.migrations import upgrade_database
+    from app.db.seed import seed_default_departments
+    from app.db.session import engine
 
     engine.dispose()
     TEST_DB.unlink(missing_ok=True)
     shutil.rmtree(TEST_UPLOAD_DIR, ignore_errors=True)
-    init_db()
+    upgrade_database(f"sqlite:///{TEST_DB}")
+    seed_default_departments()
     yield
     engine.dispose()
     TEST_DB.unlink(missing_ok=True)

@@ -1,5 +1,4 @@
 import uuid
-from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -10,23 +9,15 @@ from fastapi.responses import JSONResponse
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.exceptions import AppError
-from app.db.session import init_db
 
 
 settings = get_settings()
-
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    init_db()
-    yield
 
 
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
     debug=settings.debug,
-    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,

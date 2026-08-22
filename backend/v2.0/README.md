@@ -25,6 +25,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[dev]'
 cp .env.example .env
+python -m alembic upgrade head
+python -m app.db.seed
 python -m uvicorn app.main:app --reload
 ```
 
@@ -33,7 +35,29 @@ python -m uvicorn app.main:app --reload
 - Swagger：<http://127.0.0.1:8000/docs>
 - 健康检查：<http://127.0.0.1:8000/api/v1/health>
 
-首次启动会自动创建 `backend/v2.0/data/requirements.db` 和数据表。`.env`、默认数据库和访谈图片目录均以 `backend/v2.0` 为固定基准，不依赖启动命令的当前目录。实际部署建议下一阶段接入 Alembic 管理迁移。
+数据库结构由 Alembic 管理，应用启动不会自动建表或修改表结构。首次启动及每次拉取包含迁移的代码后，应先执行 `python -m alembic upgrade head`。默认部门通过独立的幂等命令 `python -m app.db.seed` 初始化，可安全重复执行。
+
+`.env`、默认数据库和访谈图片目录均以 `backend/v2.0` 为固定基准，不依赖启动命令的当前目录。
+
+## 数据库迁移
+
+以下命令均在 `backend/v2.0` 目录执行：
+
+```bash
+# 升级到最新结构
+python -m alembic upgrade head
+
+# 查看当前版本
+python -m alembic current
+
+# 检查 ORM 模型是否存在未生成的结构变化
+python -m alembic check
+
+# 初始化默认部门；重复执行不会重复插入
+python -m app.db.seed
+```
+
+创建后续迁移时使用 `python -m alembic revision --autogenerate -m "变更说明"`，并在提交前人工审查升级和降级内容。不要在应用启动代码中恢复 `create_all()` 或手写 `ALTER TABLE`。
 
 ## Dify 配置
 
