@@ -78,7 +78,7 @@ def _create_task(
     return response.json()["data"]
 
 
-def test_task_create_list_defaults_filters_and_truncation(db_session):
+def test_task_create_list_defaults_and_filters(db_session):
     admin = _admin(db_session)
     member = _member(db_session, "任务筛选成员")
     with TestClient(app) as client:
@@ -101,9 +101,7 @@ def test_task_create_list_defaults_filters_and_truncation(db_session):
             status="COMPLETED",
         )
 
-        all_tasks = client.get(
-            f"/api/v1/projects/{project['id']}/tasks", params={"limit": 2}
-        )
+        all_tasks = client.get(f"/api/v1/projects/{project['id']}/tasks")
         literal_search = client.get(
             f"/api/v1/projects/{project['id']}/tasks",
             params={"keyword": "100%_", "status": "ALL"},
@@ -121,9 +119,9 @@ def test_task_create_list_defaults_filters_and_truncation(db_session):
     assert third["sort_order"] == 1
     assert all_tasks.status_code == 200
     assert all_tasks.json()["data"]["total"] == 3
-    assert all_tasks.json()["data"]["limit"] == 2
-    assert all_tasks.json()["data"]["truncated"] is True
-    assert len(all_tasks.json()["data"]["items"]) == 2
+    assert len(all_tasks.json()["data"]["items"]) == 3
+    assert "limit" not in all_tasks.json()["data"]
+    assert "truncated" not in all_tasks.json()["data"]
     assert {lane["assignee_id"] for lane in all_tasks.json()["data"]["lanes"]} == {
         admin.id,
         member.id,
@@ -166,16 +164,65 @@ def test_task_creation_validates_assignee_dates_description_and_version(db_sessi
                 "version_id": "v" * 32,
             },
         )
-        excessive_limit = client.get(
-            f"/api/v1/projects/{project['id']}/tasks", params={"limit": 1001}
-        )
-
     assert invalid_assignee.status_code == 409
     assert invalid_assignee.json()["code"] == "TASK_ASSIGNEE_NOT_PROJECT_MEMBER"
     assert invalid_dates.status_code == 422
     assert oversized.status_code == 422
     assert missing_version.status_code == 404
-    assert excessive_limit.status_code == 422
+
+
+def test_assignee_task_limit_blocks_create_and_transfer_but_delete_frees_capacity(
+    db_session,
+):
+    admin = _admin(db_session)
+    member = _member(db_session, "任务容量成员")
+    with TestClient(app) as client:
+        project = _create_project(client, "成员任务容量项目")
+        _add_member(client, project, admin, member)
+        seeded = [
+            Task(
+                project_id=project["id"],
+                assignee_id=member.id,
+                name=f"容量任务 {index}",
+                sort_order=index,
+                created_by=admin.id,
+                updated_by=admin.id,
+            )
+            for index in range(1, 201)
+        ]
+        db_session.add_all(seeded)
+        db_session.commit()
+
+        full_create = client.post(
+            f"/api/v1/projects/{project['id']}/tasks",
+            json={"name": "超过容量的新任务", "assignee_id": member.id},
+        )
+        movable = _create_task(client, project["id"], admin.id, "准备转交的任务")
+        full_transfer = client.patch(
+            f"/api/v1/projects/{project['id']}/tasks/{movable['id']}",
+            json={"expected_revision": 1, "assignee_id": member.id},
+        )
+        deleted = client.delete(
+            f"/api/v1/projects/{project['id']}/tasks/{seeded[0].id}",
+            params={"expected_revision": 1},
+        )
+        after_delete = client.post(
+            f"/api/v1/projects/{project['id']}/tasks",
+            json={"name": "释放容量后的任务", "assignee_id": member.id},
+        )
+
+    assert full_create.status_code == 409
+    assert full_create.json()["code"] == "TASK_ASSIGNEE_LIMIT_REACHED"
+    assert full_create.json()["details"] == {
+        "assignee_id": member.id,
+        "current_task_count": 200,
+        "task_limit": 200,
+    }
+    assert full_transfer.status_code == 409
+    assert full_transfer.json()["code"] == "TASK_ASSIGNEE_LIMIT_REACHED"
+    assert deleted.status_code == 200
+    assert after_delete.status_code == 201
+    assert after_delete.json()["data"]["assignee_id"] == member.id
 
 
 def test_task_update_moves_to_lane_bottom_and_rejects_stale_or_invalid_dates(db_session):

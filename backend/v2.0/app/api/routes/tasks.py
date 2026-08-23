@@ -29,7 +29,6 @@ def list_tasks(
     keyword: Annotated[str | None, Query(max_length=100)] = None,
     task_status: Annotated[TaskStatusFilter, Query(alias="status")] = TaskStatusFilter.ALL,
     version_id: Annotated[str | None, Query(min_length=32, max_length=32)] = None,
-    limit: Annotated[int, Query(ge=1, le=1000)] = 1000,
 ) -> ApiResponse[TaskList]:
     tasks = TaskService(db).list(
         project_id,
@@ -37,7 +36,6 @@ def list_tasks(
         keyword=keyword.strip() if keyword else None,
         status_filter=task_status,
         version_id=version_id,
-        limit=limit,
     )
     return ApiResponse(data=tasks, request_id=request.state.request_id)
 

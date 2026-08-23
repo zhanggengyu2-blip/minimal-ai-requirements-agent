@@ -724,18 +724,6 @@
             }
           },
           {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 1000,
-              "minimum": 1,
-              "default": 1000,
-              "title": "Limit"
-            }
-          },
-          {
             "name": "X-CSRF-Token",
             "in": "header",
             "required": false,
@@ -774,7 +762,7 @@
             }
           }
         },
-        "description": "按名称、状态和版本筛选项目任务，最多返回 1000 条并附带泳道修订号。",
+        "description": "按名称、状态和版本筛选项目任务，并返回负责人泳道修订号。",
         "x-api-version": "V3.0"
       },
       "post": {
@@ -847,7 +835,7 @@
             }
           }
         },
-        "description": "为项目成员创建任务并放到负责人泳道底部。",
+        "description": "为项目成员创建任务并放到负责人泳道底部；每位负责人在单个项目中最多拥有 200 条任务。",
         "x-api-version": "V3.0"
       }
     },
@@ -6052,14 +6040,6 @@
             "type": "integer",
             "title": "Total"
           },
-          "limit": {
-            "type": "integer",
-            "title": "Limit"
-          },
-          "truncated": {
-            "type": "boolean",
-            "title": "Truncated"
-          },
           "lanes": {
             "items": {
               "$ref": "#/components/schemas/TaskLaneRevision"
@@ -6072,8 +6052,6 @@
         "required": [
           "items",
           "total",
-          "limit",
-          "truncated",
           "lanes"
         ],
         "title": "TaskList"

@@ -161,23 +161,20 @@ WHERE id = :id AND revision = :expected_revision
 | `keyword` | 可空，最多 100 字符，只匹配任务名称 |
 | `status` | `ALL/UNFINISHED/NOT_STARTED/IN_PROGRESS/COMPLETED/CANCELED` |
 | `version_id` | 可空；提供时只返回当前项目该版本任务 |
-| `limit` | 默认且最大 1000 |
 
 响应：
 
 ```json
 {
   "items": [],
-  "total": 1240,
-  "limit": 1000,
-  "truncated": true,
+  "total": 340,
   "lanes": [
     {"assignee_id": "user-a", "revision": 6}
   ]
 }
 ```
 
-`total > limit` 时仍返回前 1000 条稳定排序结果，并将 `truncated` 设为 `true`。前端必须提示缩小搜索或筛选范围，不得把这 1000 条误称为全部结果。
+返回符合搜索和筛选条件的全部任务。成员任务容量由创建和修改接口统一约束，不通过查询截断控制。
 
 ### 4.2 创建、修改和删除
 
@@ -206,6 +203,8 @@ WHERE id = :id AND revision = :expected_revision
 修改请求增加 `expected_revision`，未提供的字段保持不变。关键规则：
 
 - 负责人必须是当前项目成员；
+- 每位负责人在单个项目中最多拥有 200 条任务，按全部状态和版本计数；
+- 创建或转交到已满泳道返回 409 `TASK_ASSIGNEE_LIMIT_REACHED`；删除或转出任务后恢复名额；
 - 版本必须属于当前项目；
 - 同时有两个日期时 `due_date >= start_date`；
 - 修改负责人后任务进入新负责人泳道底部；
@@ -291,7 +290,7 @@ GET /projects/{project_id}/tasks?version_id={version_id}&status=ALL
 - 部门引用删除冲突；
 - 项目成员和版本参与人员移除冲突；
 - 任务和版本 409 乐观锁；
-- 任务查询 1000 条截断语义；
+- 成员达到 200 条任务时，创建和负责人转交均返回容量冲突；
 - 删除版本后任务仍存在且 `version_id = null`；
 - 负责人变化时排序和版本参与人员自动补齐；
 - OpenAPI 生成类型与后端契约一致。

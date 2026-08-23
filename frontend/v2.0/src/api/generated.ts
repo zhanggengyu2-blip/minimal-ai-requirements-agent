@@ -205,13 +205,13 @@ export interface paths {
         };
         /**
          * 【V3.0】 查询项目任务
-         * @description 按名称、状态和版本筛选项目任务，最多返回 1000 条并附带泳道修订号。
+         * @description 按名称、状态和版本筛选项目任务，并返回负责人泳道修订号。
          */
         get: operations["list_tasks_api_v1_projects__project_id__tasks_get"];
         put?: never;
         /**
          * 【V3.0】 创建任务
-         * @description 为项目成员创建任务并放到负责人泳道底部。
+         * @description 为项目成员创建任务并放到负责人泳道底部；每位负责人在单个项目中最多拥有 200 条任务。
          */
         post: operations["create_task_api_v1_projects__project_id__tasks_post"];
         delete?: never;
@@ -1776,10 +1776,6 @@ export interface components {
             items: components["schemas"]["TaskRead"][];
             /** Total */
             total: number;
-            /** Limit */
-            limit: number;
-            /** Truncated */
-            truncated: boolean;
             /** Lanes */
             lanes: components["schemas"]["TaskLaneRevision"][];
         };
@@ -2273,7 +2269,6 @@ export interface operations {
                 keyword?: string | null;
                 status?: components["schemas"]["TaskStatusFilter"];
                 version_id?: string | null;
-                limit?: number;
             };
             header?: {
                 "X-CSRF-Token"?: string | null;

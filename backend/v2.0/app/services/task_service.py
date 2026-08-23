@@ -25,6 +25,9 @@ from app.schemas.task import (
 from app.services.project_service import ProjectService
 
 
+TASKS_PER_ASSIGNEE_LIMIT = 200
+
+
 class TaskService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -38,7 +41,6 @@ class TaskService:
         keyword: str | None,
         status_filter: TaskStatusFilter,
         version_id: str | None,
-        limit: int,
     ) -> TaskList:
         self.projects.get_visible(project_id, actor=actor)
         if version_id is not None:
@@ -61,7 +63,6 @@ class TaskService:
                 select(Task)
                 .where(*filters)
                 .order_by(Task.assignee_id, Task.sort_order, Task.created_time, Task.id)
-                .limit(limit)
             )
         )
         lane_rows = self.db.execute(
@@ -77,8 +78,6 @@ class TaskService:
         return TaskList(
             items=[TaskRead.model_validate(task) for task in tasks],
             total=total,
-            limit=limit,
-            truncated=total > limit,
             lanes=[
                 TaskLaneRevision(assignee_id=row.user_id, revision=row.revision or 1)
                 for row in lane_rows
@@ -98,6 +97,7 @@ class TaskService:
         self._validate_dates(payload.start_date, payload.due_date)
 
         self._bump_lane(project_id, payload.assignee_id)
+        self._validate_lane_capacity(project_id, payload.assignee_id)
         sort_order = self._next_sort_order(project_id, payload.assignee_id)
         task = Task(
             project_id=project_id,
@@ -140,6 +140,7 @@ class TaskService:
         if moved:
             self._bump_lane(project_id, task.assignee_id)
             self._bump_lane(project_id, assignee_id)
+            self._validate_lane_capacity(project_id, assignee_id)
             changes["sort_order"] = self._next_sort_order(project_id, assignee_id)
 
         changes.update(
@@ -369,6 +370,24 @@ class TaskService:
             )
         )
         return (current_max or 0) + 1
+
+    def _validate_lane_capacity(self, project_id: str, assignee_id: str) -> None:
+        current_count = self.db.scalar(
+            select(func.count())
+            .select_from(Task)
+            .where(Task.project_id == project_id, Task.assignee_id == assignee_id)
+        ) or 0
+        if current_count >= TASKS_PER_ASSIGNEE_LIMIT:
+            self.db.rollback()
+            raise ConflictError(
+                "该成员在当前项目中的任务已达到 200 条上限",
+                code="TASK_ASSIGNEE_LIMIT_REACHED",
+                details={
+                    "assignee_id": assignee_id,
+                    "current_task_count": current_count,
+                    "task_limit": TASKS_PER_ASSIGNEE_LIMIT,
+                },
+            )
 
     def _raise_revision_conflict(
         self, project_id: str, task_id: str, expected_revision: int

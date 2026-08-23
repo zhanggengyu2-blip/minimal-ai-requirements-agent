@@ -107,8 +107,6 @@ class TaskLaneRevision(ORMModel):
 class TaskList(ORMModel):
     items: list[TaskRead]
     total: int
-    limit: int
-    truncated: bool
     lanes: list[TaskLaneRevision]
 
 
