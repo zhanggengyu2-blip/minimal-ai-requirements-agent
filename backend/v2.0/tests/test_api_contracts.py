@@ -198,7 +198,7 @@ def test_archived_project_cannot_start_interview():
             )
 
     assert response.status_code == 403
-    assert response.json()["code"] == "PERMISSION_DENIED"
+    assert response.json()["code"] == "PROJECT_ARCHIVED"
     mocked.assert_not_awaited()
 
 

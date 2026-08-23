@@ -346,7 +346,7 @@ def test_archived_project_allows_reads_but_rejects_all_task_writes(db_session):
     assert readable.json()["data"]["total"] == 1
     for response in (create, update, delete, reorder):
         assert response.status_code == 403
-        assert response.json()["code"] == "PERMISSION_DENIED"
+        assert response.json()["code"] == "PROJECT_ARCHIVED"
 
 
 def test_nonmember_cannot_discover_tasks_and_admin_must_join_before_writes(db_session):

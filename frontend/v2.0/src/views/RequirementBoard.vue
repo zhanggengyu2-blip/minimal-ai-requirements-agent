@@ -11,7 +11,11 @@ import type {
 import { requirementApi } from '../api'
 import { ANALYSIS_STATUS, REQUIREMENT_TYPE, shortId } from '../constants'
 
-const props = defineProps<{ projects: Project[]; selectedProjectId?: string }>()
+const props = withDefaults(defineProps<{
+  projects: Project[]
+  selectedProjectId?: string
+  readOnly?: boolean
+}>(), { readOnly: false })
 const emit = defineEmits<{ create: []; detail: [id: string] }>()
 const loading = ref(false)
 const batchLoading = ref(false)
@@ -68,6 +72,10 @@ const toggle = (id: string, checked: boolean) => {
     : selectedIds.value.filter((item) => item !== id)
 }
 const batchAnalyze = async () => {
+  if (props.readOnly) {
+    ElMessage.warning('项目已归档，仅支持查看')
+    return
+  }
   const ids = selectedIds.value.length
     ? selectedIds.value
     : items.value.filter((item) => item.analysis_status !== 'ANALYZING').map((item) => item.id)
@@ -98,6 +106,14 @@ onMounted(load)
 
 <template>
   <main class="page requirement-page">
+    <el-alert
+      v-if="readOnly"
+      title="项目已归档或当前账号不是项目成员，仅支持查看"
+      type="warning"
+      show-icon
+      :closable="false"
+      class="readonly-alert"
+    />
     <div class="breadcrumb-title"><strong>{{ currentProjectName }}</strong><span>/</span><strong>需求</strong></div>
     <div class="requirement-toolbar">
       <el-input
@@ -110,10 +126,10 @@ onMounted(load)
         @clear="search"
       />
       <div class="toolbar-actions">
-        <el-button :icon="MagicStick" :loading="batchLoading" @click="batchAnalyze">
+        <el-button :icon="MagicStick" :loading="batchLoading" :disabled="readOnly" @click="batchAnalyze">
           AI批量分析<span v-if="selectedIds.length">（{{ selectedIds.length }}）</span>
         </el-button>
-        <el-button type="primary" :icon="Plus" @click="emit('create')">提交新需求</el-button>
+        <el-button type="primary" :icon="Plus" :disabled="readOnly" @click="emit('create')">提交新需求</el-button>
       </div>
     </div>
     <p class="sort-hint">按 AI 建议优先级分组 · 点击卡片查看完整分析结果</p>
@@ -135,6 +151,7 @@ onMounted(load)
             <div class="card-top">
               <el-checkbox
                 :model-value="selectedIds.includes(item.id)"
+                :disabled="readOnly"
                 @click.stop
                 @change="toggle(item.id, Boolean($event))"
               />

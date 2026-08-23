@@ -115,7 +115,7 @@ class ProjectService:
     def require_writable(self, project_id: str, *, actor: UserAccount) -> Project:
         project = self.require_member(project_id, actor=actor)
         if project.status != ProjectStatus.ACTIVE:
-            raise PermissionDeniedError("归档项目为只读状态")
+            raise PermissionDeniedError("归档项目为只读状态", code="PROJECT_ARCHIVED")
         return project
 
     def get(self, project_id: str, *, actor: UserAccount) -> ProjectRead:
@@ -132,7 +132,10 @@ class ProjectService:
         changes = payload.model_dump(exclude_unset=True, exclude={"expected_revision"})
         if project.status == ProjectStatus.ARCHIVED:
             if changes != {"status": ProjectStatus.ACTIVE}:
-                raise PermissionDeniedError("归档项目只能重新打开，不能修改其他信息")
+                raise PermissionDeniedError(
+                    "归档项目只能重新打开，不能修改其他信息",
+                    code="PROJECT_ARCHIVED",
+                )
         self._validate_department(changes.get("department_id"), supplied="department_id" in changes)
 
         changes["updated_time"] = utc_now()
@@ -190,7 +193,7 @@ class ProjectService:
     ) -> ProjectMemberList:
         project = self.get_visible(project_id, actor=actor)
         if project.status != ProjectStatus.ACTIVE:
-            raise PermissionDeniedError("归档项目为只读状态")
+            raise PermissionDeniedError("归档项目为只读状态", code="PROJECT_ARCHIVED")
 
         requested_ids = set(payload.user_ids)
         users = list(self.db.scalars(select(UserAccount).where(UserAccount.id.in_(requested_ids))))

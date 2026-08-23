@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { FolderOpened, Plus, Refresh } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { FolderOpened, Plus, Refresh, User } from '@element-plus/icons-vue'
 import type { Project, ProjectStatus } from '../api'
 import { projectApi } from '../api'
+import { ApiRequestError } from '../api/http'
 import { PROJECT_STATUS, formatDate } from '../constants'
+import ProjectMemberDialog from '../components/ProjectMemberDialog.vue'
 
 const emit = defineEmits<{ create: []; changed: [] }>()
 const loading = ref(false)
+const actionProjectId = ref('')
 const rows = ref<Project[]>([])
 const total = ref(0)
 const query = reactive<{ page: number; page_size: number; status?: ProjectStatus }>({
@@ -14,6 +19,9 @@ const query = reactive<{ page: number; page_size: number; status?: ProjectStatus
   page_size: 10,
   status: undefined,
 })
+const router = useRouter()
+const memberDialog = ref(false)
+const memberProject = ref<Project | null>(null)
 
 const load = async () => {
   loading.value = true
@@ -30,6 +38,44 @@ const filter = () => {
   load()
 }
 const statusLabel = (status: ProjectStatus) => PROJECT_STATUS[status]
+const viewProject = (project: Project) => router.push({
+  name: 'project-requirements',
+  params: { projectId: project.id },
+})
+const openMembers = (project: Project) => {
+  memberProject.value = project
+  memberDialog.value = true
+}
+const changeStatus = async (project: Project) => {
+  const archive = project.status === 'ACTIVE'
+  await ElMessageBox.confirm(
+    archive
+      ? `归档“${project.name}”后，项目内容仍可查看，但所有写操作将被禁用。`
+      : `确认重新打开“${project.name}”吗？`,
+    archive ? '归档项目' : '重新打开项目',
+    {
+      type: archive ? 'warning' : 'info',
+      confirmButtonText: archive ? '确认归档' : '确认打开',
+      cancelButtonText: '取消',
+    },
+  )
+  actionProjectId.value = project.id
+  try {
+    await projectApi.update(project.id, {
+      expected_revision: project.revision,
+      status: archive ? 'ARCHIVED' : 'ACTIVE',
+    })
+    ElMessage.success(archive ? '项目已归档' : '项目已重新打开')
+    await refresh()
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 409) {
+      ElMessage.warning('项目已被其他人修改，请刷新后重试')
+      await refresh()
+    }
+  } finally {
+    actionProjectId.value = ''
+  }
+}
 const refresh = async () => {
   await load()
   emit('changed')
@@ -83,6 +129,20 @@ onMounted(load)
         <el-table-column label="创建时间" width="180">
           <template #default="{ row }">{{ formatDate(row.created_time) }}</template>
         </el-table-column>
+        <el-table-column label="操作" width="245" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="viewProject(row)">查看</el-button>
+            <el-button link type="primary" :icon="User" @click="openMembers(row)">成员</el-button>
+            <el-button
+              link
+              :type="row.status === 'ACTIVE' ? 'danger' : 'success'"
+              :loading="actionProjectId === row.id"
+              @click="changeStatus(row)"
+            >
+              {{ row.status === 'ACTIVE' ? '归档' : '重新打开' }}
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <div v-if="!loading && !rows.length" class="empty-state">
         <el-icon :size="40"><FolderOpened /></el-icon>
@@ -101,5 +161,10 @@ onMounted(load)
         />
       </div>
     </section>
+    <ProjectMemberDialog
+      v-model="memberDialog"
+      :project="memberProject"
+      @saved="refresh"
+    />
   </main>
 </template>

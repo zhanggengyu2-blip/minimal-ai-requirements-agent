@@ -243,9 +243,12 @@ def test_archive_is_readonly_and_member_can_reopen(db_session):
         )
 
     assert requirement.status_code == 403
+    assert requirement.json()["code"] == "PROJECT_ARCHIVED"
     analyze.assert_not_awaited()
     assert member_write.status_code == 403
+    assert member_write.json()["code"] == "PROJECT_ARCHIVED"
     assert edit.status_code == 403
+    assert edit.json()["code"] == "PROJECT_ARCHIVED"
     assert reopened.status_code == 200
     assert reopened.json()["data"]["revision"] == 3
     assert stale.status_code == 409

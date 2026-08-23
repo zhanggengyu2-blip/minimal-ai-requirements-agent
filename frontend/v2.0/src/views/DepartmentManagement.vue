@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { InfoFilled, Plus, Search } from '@element-plus/icons-vue'
+import { Delete, InfoFilled, Plus, Search } from '@element-plus/icons-vue'
 import type { Department } from '../api'
 import { departmentApi } from '../api'
 import { formatDate } from '../constants'
@@ -10,6 +10,7 @@ import { formatDate } from '../constants'
 const emit = defineEmits<{ changed: [] }>()
 const loading = ref(false)
 const submitting = ref(false)
+const deletingId = ref('')
 const rows = ref<Department[]>([])
 const total = ref(0)
 const dialogVisible = ref(false)
@@ -78,6 +79,22 @@ const submit = async () => {
     submitting.value = false
   }
 }
+const remove = async (department: Department) => {
+  await ElMessageBox.confirm(
+    `部门“${department.name}”删除后不可恢复。仅无用户、项目和邀请码引用时允许删除。`,
+    '永久删除部门',
+    { type: 'warning', confirmButtonText: '确认永久删除', cancelButtonText: '取消' },
+  )
+  deletingId.value = department.id
+  try {
+    await departmentApi.delete(department.id)
+    ElMessage.success('部门已永久删除')
+    await load()
+    emit('changed')
+  } finally {
+    deletingId.value = ''
+  }
+}
 onMounted(load)
 </script>
 
@@ -118,6 +135,15 @@ onMounted(load)
         </div>
         <div class="department-actions">
           <el-button link type="primary" @click="openEdit(department)">编辑</el-button>
+          <el-button
+            link
+            type="danger"
+            :icon="Delete"
+            :loading="deletingId === department.id"
+            @click="remove(department)"
+          >
+            删除
+          </el-button>
         </div>
       </article>
       <el-empty v-if="!loading && !rows.length" description="暂无符合条件的部门" />

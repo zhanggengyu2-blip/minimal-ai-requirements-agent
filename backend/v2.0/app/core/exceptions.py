@@ -39,8 +39,13 @@ class AuthenticationError(AppError):
 
 
 class PermissionDeniedError(AppError):
-    def __init__(self, message: str = "没有操作权限") -> None:
-        super().__init__(message, code="PERMISSION_DENIED", status_code=403)
+    def __init__(
+        self,
+        message: str = "没有操作权限",
+        *,
+        code: str = "PERMISSION_DENIED",
+    ) -> None:
+        super().__init__(message, code=code, status_code=403)
 
 
 class InvalidImageError(AppError):
