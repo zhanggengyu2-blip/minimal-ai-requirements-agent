@@ -32,6 +32,13 @@ OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
     ("/api/v1/projects/{project_id}", "patch"): ("更新项目", "V3.0", "项目成员使用修订号编辑、归档或重新打开项目。"),
     ("/api/v1/projects/{project_id}/members", "get"): ("查询项目成员", "V3.0", "返回项目成员、部门、任务数量和成员集合修订号。"),
     ("/api/v1/projects/{project_id}/members", "put"): ("保存项目成员", "V3.0", "用完整用户 ID 集合和成员修订号原子保存项目成员。"),
+    ("/api/v1/projects/{project_id}/tasks", "get"): ("查询项目任务", "V3.0", "按名称、状态和版本筛选项目任务，最多返回 1000 条并附带泳道修订号。"),
+    ("/api/v1/projects/{project_id}/tasks", "post"): ("创建任务", "V3.0", "为项目成员创建任务并放到负责人泳道底部。"),
+    ("/api/v1/projects/{project_id}/tasks/{task_id}", "get"): ("查询任务详情", "V3.0", "查询当前项目中的单个任务。"),
+    ("/api/v1/projects/{project_id}/tasks/{task_id}", "patch"): ("更新任务", "V3.0", "使用任务修订号修改任务；更换负责人时移动到新泳道底部。"),
+    ("/api/v1/projects/{project_id}/tasks/{task_id}", "delete"): ("永久删除任务", "V3.0", "使用任务修订号永久删除任务并更新泳道修订号。"),
+    ("/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order", "get"): ("查询完整泳道顺序", "V3.0", "返回负责人完整任务 ID 顺序和泳道修订号。"),
+    ("/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order", "put"): ("保存完整泳道顺序", "V3.0", "使用泳道修订号原子保存完整任务 ID 顺序。"),
     ("/api/v1/requirements", "post"): ("直接创建并分析需求", "V1.1", "不经过访谈，直接保存原始需求并调用需求分析 Workflow。"),
     ("/api/v1/requirements", "get"): ("查询需求列表", "V1.1", "分页、筛选和搜索需求。"),
     ("/api/v1/requirements/{requirement_id}", "get"): ("查询需求详情", "V1.1", "按需求 ID 查询需求详情。"),
@@ -63,6 +70,7 @@ TAG_META = {
     "health": "服务状态",
     "auth": "身份注册、登录与会话（V3.0）",
     "projects": "项目与成员管理（V3.0）",
+    "tasks": "团队任务与泳道排序（V3.0）",
     "requirements": "需求管理（V1.1/V2.0）",
     "interviews": "对话式需求访谈（V2.0）",
     "departments": "部门管理（V1.1）",
@@ -79,7 +87,7 @@ def build_schema() -> dict[str, Any]:
             "version": "3.0.0",
             "description": (
                 "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、"
-                "HttpOnly Cookie 会话、CSRF、管理员权限、项目成员和项目级访问控制；"
+                "HttpOnly Cookie 会话、CSRF、管理员权限、项目成员、项目级访问控制和团队任务；"
                 "Dify API Key 仍仅由后端环境变量持有。"
             ),
         }

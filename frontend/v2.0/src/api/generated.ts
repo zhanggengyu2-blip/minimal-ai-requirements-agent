@@ -196,6 +196,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询项目任务
+         * @description 按名称、状态和版本筛选项目任务，最多返回 1000 条并附带泳道修订号。
+         */
+        get: operations["list_tasks_api_v1_projects__project_id__tasks_get"];
+        put?: never;
+        /**
+         * 【V3.0】 创建任务
+         * @description 为项目成员创建任务并放到负责人泳道底部。
+         */
+        post: operations["create_task_api_v1_projects__project_id__tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询任务详情
+         * @description 查询当前项目中的单个任务。
+         */
+        get: operations["get_task_api_v1_projects__project_id__tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * 【V3.0】 永久删除任务
+         * @description 使用任务修订号永久删除任务并更新泳道修订号。
+         */
+        delete: operations["delete_task_api_v1_projects__project_id__tasks__task_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 【V3.0】 更新任务
+         * @description 使用任务修订号修改任务；更换负责人时移动到新泳道底部。
+         */
+        patch: operations["update_task_api_v1_projects__project_id__tasks__task_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询完整泳道顺序
+         * @description 返回负责人完整任务 ID 顺序和泳道修订号。
+         */
+        get: operations["get_task_lane_order_api_v1_projects__project_id__task_lanes__assignee_id__order_get"];
+        /**
+         * 【V3.0】 保存完整泳道顺序
+         * @description 使用泳道修订号原子保存完整任务 ID 顺序。
+         */
+        put: operations["reorder_task_lane_api_v1_projects__project_id__task_lanes__assignee_id__order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/requirements": {
         parameters: {
             query?: never;
@@ -753,6 +829,23 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
+        /** ApiResponse[NoneType] */
+        ApiResponse_NoneType_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            /** Data */
+            data: null;
+            /** Request Id */
+            request_id?: string | null;
+        };
         /** ApiResponse[PageData[DepartmentRead]] */
         ApiResponse_PageData_DepartmentRead__: {
             /**
@@ -878,6 +971,54 @@ export interface components {
              */
             message: string;
             data: components["schemas"]["RequirementRead"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[TaskLaneOrderRead] */
+        ApiResponse_TaskLaneOrderRead_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["TaskLaneOrderRead"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[TaskList] */
+        ApiResponse_TaskList_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["TaskList"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[TaskRead] */
+        ApiResponse_TaskRead_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["TaskRead"];
             /** Request Id */
             request_id?: string | null;
         };
@@ -1584,6 +1725,137 @@ export interface components {
          * @enum {string}
          */
         SourceChannel: "MANAGEMENT_WEB" | "PRODUCT_WEB" | "MINI_PROGRAM" | "WECHAT" | "WECOM" | "FEISHU" | "OTHER";
+        /** TaskCreate */
+        TaskCreate: {
+            /** Name */
+            name: string;
+            /** Assignee Id */
+            assignee_id: string;
+            /** @default NOT_STARTED */
+            status: components["schemas"]["TaskStatus"];
+            /** @default P1 */
+            priority: components["schemas"]["TaskPriority"];
+            /** Version Id */
+            version_id?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+        };
+        /** TaskLaneOrderRead */
+        TaskLaneOrderRead: {
+            /** Assignee Id */
+            assignee_id: string;
+            /** Ordered Task Ids */
+            ordered_task_ids: string[];
+            /** Lane Revision */
+            lane_revision: number;
+        };
+        /** TaskLaneOrderUpdate */
+        TaskLaneOrderUpdate: {
+            /** Expected Lane Revision */
+            expected_lane_revision: number;
+            /** Ordered Task Ids */
+            ordered_task_ids: string[];
+        };
+        /** TaskLaneRevision */
+        TaskLaneRevision: {
+            /** Assignee Id */
+            assignee_id: string;
+            /** Revision */
+            revision: number;
+        };
+        /** TaskList */
+        TaskList: {
+            /** Items */
+            items: components["schemas"]["TaskRead"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Truncated */
+            truncated: boolean;
+            /** Lanes */
+            lanes: components["schemas"]["TaskLaneRevision"][];
+        };
+        /**
+         * TaskPriority
+         * @enum {string}
+         */
+        TaskPriority: "P0" | "P1" | "P2" | "P3";
+        /** TaskRead */
+        TaskRead: {
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string;
+            /** Assignee Id */
+            assignee_id: string;
+            /** Version Id */
+            version_id: string | null;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            status: components["schemas"]["TaskStatus"];
+            priority: components["schemas"]["TaskPriority"];
+            /** Start Date */
+            start_date: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Sort Order */
+            sort_order: number;
+            /** Revision */
+            revision: number;
+            /** Created By */
+            created_by: string;
+            /** Updated By */
+            updated_by: string;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+            /**
+             * Updated Time
+             * Format: date-time
+             */
+            updated_time: string;
+        };
+        /**
+         * TaskStatus
+         * @enum {string}
+         */
+        TaskStatus: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELED";
+        /**
+         * TaskStatusFilter
+         * @enum {string}
+         */
+        TaskStatusFilter: "ALL" | "UNFINISHED" | "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "CANCELED";
+        /** TaskUpdate */
+        TaskUpdate: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Name */
+            name?: string | null;
+            /** Assignee Id */
+            assignee_id?: string | null;
+            status?: components["schemas"]["TaskStatus"] | null;
+            priority?: components["schemas"]["TaskPriority"] | null;
+            /** Version Id */
+            version_id?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Description */
+            description?: string | null;
+        };
         /** UserRead */
         UserRead: {
             /** Id */
@@ -1982,6 +2254,261 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_ProjectMemberList_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tasks_api_v1_projects__project_id__tasks_get: {
+        parameters: {
+            query?: {
+                keyword?: string | null;
+                status?: components["schemas"]["TaskStatusFilter"];
+                version_id?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskList_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_api_v1_projects__project_id__tasks_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_api_v1_projects__project_id__tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_task_api_v1_projects__project_id__tasks__task_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_task_api_v1_projects__project_id__tasks__task_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_lane_order_api_v1_projects__project_id__task_lanes__assignee_id__order_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                assignee_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskLaneOrderRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_task_lane_api_v1_projects__project_id__task_lanes__assignee_id__order_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                assignee_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLaneOrderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskLaneOrderRead_"];
                 };
             };
             /** @description Validation Error */

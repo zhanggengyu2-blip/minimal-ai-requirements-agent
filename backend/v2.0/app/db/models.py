@@ -1,8 +1,21 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,6 +32,20 @@ def new_id() -> str:
 class ProjectStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
     ARCHIVED = "ARCHIVED"
+
+
+class TaskStatus(str, enum.Enum):
+    NOT_STARTED = "NOT_STARTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    CANCELED = "CANCELED"
+
+
+class TaskPriority(str, enum.Enum):
+    P0 = "P0"
+    P1 = "P1"
+    P2 = "P2"
+    P3 = "P3"
 
 
 class AnalysisStatus(str, enum.Enum):
@@ -233,6 +260,9 @@ class Project(Base):
     members: Mapped[list["ProjectMember"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
+    tasks: Mapped[list["Task"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):
@@ -256,6 +286,75 @@ class ProjectMember(Base):
     user: Mapped[UserAccount] = relationship(
         back_populates="project_memberships", foreign_keys=[user_id]
     )
+
+
+class TaskLane(Base):
+    __tablename__ = "task_lane"
+
+    project_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project.id", ondelete="CASCADE"), primary_key=True
+    )
+    assignee_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), primary_key=True
+    )
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+
+class Task(Base):
+    __tablename__ = "task"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["project_id", "assignee_id"],
+            ["project_member.project_id", "project_member.user_id"],
+            name="fk_task_project_member",
+            ondelete="RESTRICT",
+        ),
+        CheckConstraint(
+            "due_date IS NULL OR start_date IS NULL OR due_date >= start_date",
+            name="ck_task_date_order",
+        ),
+        Index("ix_task_project_assignee_sort", "project_id", "assignee_id", "sort_order"),
+        Index("ix_task_project_status_sort", "project_id", "status", "sort_order"),
+        Index("ix_task_version_assignee_sort", "version_id", "assignee_id", "sort_order"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project.id", ondelete="CASCADE"), nullable=False
+    )
+    assignee_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    version_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[TaskStatus] = mapped_column(
+        Enum(TaskStatus, native_enum=False), default=TaskStatus.NOT_STARTED, nullable=False
+    )
+    priority: Mapped[TaskPriority] = mapped_column(
+        Enum(TaskPriority, native_enum=False), default=TaskPriority.P1, nullable=False
+    )
+    start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_by: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    updated_by: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    project: Mapped[Project] = relationship(back_populates="tasks")
 
 
 class InterviewSession(Base):

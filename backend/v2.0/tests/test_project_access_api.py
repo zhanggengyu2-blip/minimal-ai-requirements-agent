@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select, text
+from sqlalchemy import select
 
 from app.api.deps import get_auth_context
 from app.core.security import normalize_name
@@ -11,6 +11,7 @@ from app.db.models import (
     InterviewSession,
     ProjectMember,
     Requirement,
+    Task,
     UserAccount,
     UserRole,
 )
@@ -262,19 +263,16 @@ def test_member_with_assigned_task_cannot_be_removed(db_session):
         )
         assert added.status_code == 200
 
-        db_session.execute(
-            text(
-                "CREATE TABLE task ("
-                "id VARCHAR(32) PRIMARY KEY, project_id VARCHAR(32) NOT NULL, "
-                "assignee_id VARCHAR(32) NOT NULL)"
+        db_session.add(
+            Task(
+                id="t" * 32,
+                project_id=project["id"],
+                assignee_id=member.id,
+                name="成员仍负责的任务",
+                sort_order=1,
+                created_by=admin.id,
+                updated_by=admin.id,
             )
-        )
-        db_session.execute(
-            text(
-                "INSERT INTO task (id, project_id, assignee_id) "
-                "VALUES (:id, :project_id, :assignee_id)"
-            ),
-            {"id": "t" * 32, "project_id": project["id"], "assignee_id": member.id},
         )
         db_session.commit()
 

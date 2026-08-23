@@ -1,4 +1,4 @@
-from sqlalchemy import delete, func, inspect, select, text, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,8 @@ from app.db.models import (
     ProjectMember,
     ProjectStatus,
     Requirement,
+    Task,
+    TaskLane,
     UserAccount,
     UserRole,
     utc_now,
@@ -36,6 +38,7 @@ class ProjectService:
             self.db.add(
                 ProjectMember(project_id=project.id, user_id=actor.id, added_by=actor.id)
             )
+            self.db.add(TaskLane(project_id=project.id, assignee_id=actor.id))
             self.db.commit()
         except IntegrityError as exc:
             self.db.rollback()
@@ -235,6 +238,12 @@ class ProjectService:
 
         if removed_ids:
             self.db.execute(
+                delete(TaskLane).where(
+                    TaskLane.project_id == project.id,
+                    TaskLane.assignee_id.in_(removed_ids),
+                )
+            )
+            self.db.execute(
                 delete(ProjectMember).where(
                     ProjectMember.project_id == project.id,
                     ProjectMember.user_id.in_(removed_ids),
@@ -242,6 +251,7 @@ class ProjectService:
             )
         for user_id in requested_ids - current_ids:
             self.db.add(ProjectMember(project_id=project.id, user_id=user_id, added_by=actor.id))
+            self.db.add(TaskLane(project_id=project.id, assignee_id=user_id))
         self.db.commit()
         return self.list_members(project.id, actor=actor)
 
@@ -287,26 +297,14 @@ class ProjectService:
         *,
         user_ids: set[str] | None = None,
     ) -> dict[str, int]:
-        bind = self.db.get_bind()
-        if not inspect(bind).has_table("task"):
-            return {}
-        parameters: dict[str, object] = {"project_id": project_id}
-        condition = ""
+        query = (
+            select(Task.assignee_id, func.count(Task.id))
+            .where(Task.project_id == project_id)
+            .group_by(Task.assignee_id)
+        )
         if user_ids is not None:
             if not user_ids:
                 return {}
-            placeholders = []
-            for index, user_id in enumerate(sorted(user_ids)):
-                key = f"user_id_{index}"
-                parameters[key] = user_id
-                placeholders.append(f":{key}")
-            condition = f" AND assignee_id IN ({', '.join(placeholders)})"
-        rows = self.db.execute(
-            text(
-                "SELECT assignee_id, COUNT(*) AS task_count FROM task "
-                "WHERE project_id = :project_id"
-                f"{condition} GROUP BY assignee_id"
-            ),
-            parameters,
-        ).all()
-        return {row.assignee_id: row.task_count for row in rows}
+            query = query.where(Task.assignee_id.in_(user_ids))
+        rows = self.db.execute(query).all()
+        return {assignee_id: task_count for assignee_id, task_count in rows}

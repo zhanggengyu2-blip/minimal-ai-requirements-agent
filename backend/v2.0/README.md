@@ -117,6 +117,31 @@ python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
 | GET | `/api/v1/projects/{project_id}/members` | 查询项目成员及成员修订号 |
 | PUT | `/api/v1/projects/{project_id}/members` | 使用完整用户 ID 集合保存成员 |
 
+## 团队任务与泳道
+
+- 任务名称、负责人、状态和优先级必填；默认状态为 `NOT_STARTED`，默认优先级为 `P1`；
+- 负责人必须是当前项目成员，新建任务和更换负责人后均放到对应泳道底部；
+- 状态支持全部、未完成及四种具体状态筛选，搜索只匹配任务名称；
+- 单次最多返回 1000 条，响应使用 `total` 和 `truncated` 明确是否被截断；
+- 任务基础字段使用 `revision` 防止并发覆盖，完整泳道排序使用独立 `lane_revision`；
+- 排序请求必须提交负责人泳道中的完整任务 ID 集合；
+- 归档项目允许读取和筛选任务，但拒绝创建、编辑、删除及排序；
+- 删除任务为永久删除，不提供回收站或恢复记录。
+
+任务接口：
+
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/projects/{project_id}/tasks` | 搜索、筛选并查询任务和泳道修订号 |
+| POST | `/api/v1/projects/{project_id}/tasks` | 创建任务 |
+| GET | `/api/v1/projects/{project_id}/tasks/{task_id}` | 查询任务详情 |
+| PATCH | `/api/v1/projects/{project_id}/tasks/{task_id}` | 使用任务修订号更新任务 |
+| DELETE | `/api/v1/projects/{project_id}/tasks/{task_id}` | 使用任务修订号永久删除任务 |
+| GET | `/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order` | 查询完整泳道顺序 |
+| PUT | `/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order` | 使用泳道修订号保存完整顺序 |
+
+`version_id` 已进入任务模型和接口，但项目版本表属于 T6。在 T6 完成前仅支持 `null`，传入非空版本 ID 会返回“版本不存在”。
+
 ## Dify 配置
 
 将本地 Dify Workflow 的 API 基础地址和密钥写入 `.env`：
