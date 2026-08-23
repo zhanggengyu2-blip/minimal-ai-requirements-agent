@@ -132,6 +132,9 @@ class UserAccount(Base):
     sessions: Mapped[list["AuthSession"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    project_memberships: Mapped[list["ProjectMember"]] = relationship(
+        back_populates="user", foreign_keys="ProjectMember.user_id"
+    )
 
 
 class AuthSession(Base):
@@ -205,11 +208,17 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text, default="", nullable=False)
     project_context: Mapped[str] = mapped_column(Text, nullable=False)
-    department_id: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
-    created_by: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    department_id: Mapped[str | None] = mapped_column(
+        String(32), ForeignKey("department.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    created_by: Mapped[str | None] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=True
+    )
     status: Mapped[ProjectStatus] = mapped_column(
         Enum(ProjectStatus, native_enum=False), default=ProjectStatus.ACTIVE, nullable=False, index=True
     )
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    member_revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
@@ -220,6 +229,32 @@ class Project(Base):
     )
     interview_sessions: Mapped[list["InterviewSession"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
+    )
+    members: Mapped[list["ProjectMember"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
+
+
+class ProjectMember(Base):
+    __tablename__ = "project_member"
+    __table_args__ = (Index("ix_project_member_user_project", "user_id", "project_id"),)
+
+    project_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), primary_key=True
+    )
+    added_by: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+
+    project: Mapped[Project] = relationship(back_populates="members")
+    user: Mapped[UserAccount] = relationship(
+        back_populates="project_memberships", foreign_keys=[user_id]
     )
 
 

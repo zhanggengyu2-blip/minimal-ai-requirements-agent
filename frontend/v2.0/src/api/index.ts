@@ -13,7 +13,6 @@ export type AnalysisStatus = components['schemas']['AnalysisStatus']
 export type Department = components['schemas']['DepartmentRead']
 export type DepartmentCreate = components['schemas']['DepartmentCreate']
 export type DepartmentUpdate = components['schemas']['DepartmentUpdate']
-export type DepartmentStatus = components['schemas']['DepartmentStatus']
 export type Invitation = components['schemas']['InvitationRead']
 export type InvitationCreate = components['schemas']['InvitationCreate']
 export type InvitationStatus = components['schemas']['InvitationStatus']
@@ -60,6 +59,8 @@ export const departmentApi = {
     http.post<never, Department>('/departments', data),
   update: (departmentId: string, data: DepartmentUpdate) =>
     http.patch<never, Department>(`/departments/${departmentId}`, data),
+  delete: (departmentId: string) =>
+    http.delete<never, null>(`/departments/${departmentId}`),
 }
 
 export const invitationApi = {

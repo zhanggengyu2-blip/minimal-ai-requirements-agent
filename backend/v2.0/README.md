@@ -97,6 +97,26 @@ python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
 
 登录 Cookie 使用 `HttpOnly` 和 `SameSite=Lax`。除登录、注册和健康检查外，所有业务接口都要求登录；所有写请求还必须使用 `X-CSRF-Token` 请求头携带 `/auth/me` 返回的 CSRF 令牌。
 
+## 项目成员与可见性
+
+- 创建项目时，当前用户自动成为首位项目成员；
+- 普通成员只能查看自己加入的项目，直接访问其他项目及其需求、访谈会返回 `404`；
+- 管理员可以查看全部项目并协助维护成员，但修改项目业务数据前也必须加入项目；
+- 项目成员使用完整用户 ID 集合保存成员，至少保留一名成员；
+- 任意项目成员可以归档或重新打开项目，归档项目除重新打开外均为只读；
+- 项目基础信息和成员集合分别使用 `revision`、`member_revision` 防止并发覆盖。
+
+项目与成员接口：
+
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/projects` | 普通成员查询本人项目，管理员查询全部项目 |
+| POST | `/api/v1/projects` | 创建项目并自动加入创建者 |
+| GET | `/api/v1/projects/{project_id}` | 查询可见项目详情 |
+| PATCH | `/api/v1/projects/{project_id}` | 编辑、归档或重新打开项目 |
+| GET | `/api/v1/projects/{project_id}/members` | 查询项目成员及成员修订号 |
+| PUT | `/api/v1/projects/{project_id}/members` | 使用完整用户 ID 集合保存成员 |
+
 ## Dify 配置
 
 将本地 Dify Workflow 的 API 基础地址和密钥写入 `.env`：

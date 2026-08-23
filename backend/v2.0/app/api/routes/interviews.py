@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import NotFoundError
 from app.db.models import AnalysisStatus, InterviewActionType
 from app.db.session import get_db
 from app.schemas.common import ApiResponse
@@ -20,16 +21,35 @@ from app.schemas.interview import (
 )
 from app.services.interview_attachment_service import InterviewAttachmentService
 from app.services.interview_service import InterviewService
+from app.services.project_service import ProjectService
 
 
 router = APIRouter()
 DbSession = Annotated[Session, Depends(get_db)]
 
 
+def _session_with_access(
+    db: Session,
+    session_id: str,
+    *,
+    actor,
+    writable: bool,
+):
+    service = InterviewService(db)
+    session = service.get(session_id)
+    projects = ProjectService(db)
+    if writable:
+        projects.require_writable(session.project_id, actor=actor)
+    else:
+        projects.get_visible(session.project_id, actor=actor)
+    return service, session
+
+
 @router.post("", response_model=ApiResponse[InterviewSessionRead], status_code=status.HTTP_201_CREATED)
 async def create_interview(
     payload: InterviewCreate, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
+    ProjectService(db).require_writable(payload.project_id, actor=request.state.current_user)
     service = InterviewService(db)
     session = await service.create(payload, created_by=request.state.current_user.id)
     return ApiResponse(
@@ -46,7 +66,11 @@ def list_interview_drafts(
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> ApiResponse[list[InterviewDraftRead]]:
     sessions = InterviewService(db).drafts(
-        created_by=request.state.current_user.id, limit=limit
+        created_by=request.state.current_user.id,
+        visible_project_ids=ProjectService(db).visible_project_ids(
+            actor=request.state.current_user
+        ),
+        limit=limit,
     )
     return ApiResponse(
         data=[InterviewDraftRead.model_validate(item) for item in sessions],
@@ -78,10 +102,16 @@ async def upload_interview_attachment(
 @router.get("/attachments/{attachment_id}/content", response_class=FileResponse)
 def preview_interview_attachment(
     attachment_id: str,
+    request: Request,
     db: DbSession,
 ) -> FileResponse:
     service = InterviewAttachmentService(db)
     attachment = service.get(attachment_id)
+    if attachment.session_id:
+        session = InterviewService(db).get(attachment.session_id)
+        ProjectService(db).get_visible(session.project_id, actor=request.state.current_user)
+    elif attachment.uploaded_by != request.state.current_user.id:
+        raise NotFoundError("访谈图片不存在")
     return FileResponse(
         service.content_path(attachment),
         media_type=attachment.mime_type,
@@ -92,9 +122,11 @@ def preview_interview_attachment(
 def get_interview(
     session_id: str, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, session = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=False
+    )
     return ApiResponse(
-        data=service.to_read(service.get(session_id)),
+        data=service.to_read(session),
         request_id=request.state.request_id,
     )
 
@@ -106,7 +138,9 @@ async def answer_interview(
     request: Request,
     db: DbSession,
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = await service.answer(session_id, payload)
     return ApiResponse(
         message="消息已保存",
@@ -122,7 +156,9 @@ async def skip_interview_question(
     request: Request,
     db: DbSession,
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = await service.skip_or_unknown(
         session_id, payload, action=InterviewActionType.SKIP
     )
@@ -140,7 +176,9 @@ async def mark_interview_unknown(
     request: Request,
     db: DbSession,
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = await service.skip_or_unknown(
         session_id, payload, action=InterviewActionType.UNKNOWN
     )
@@ -155,7 +193,9 @@ async def mark_interview_unknown(
 def summarize_interview(
     session_id: str, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = service.summarize(session_id)
     return ApiResponse(
         message="已按当前信息整理",
@@ -171,7 +211,9 @@ def update_interview_summary(
     request: Request,
     db: DbSession,
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = service.update_summary(session_id, payload)
     return ApiResponse(
         message="需求总结已更新",
@@ -187,7 +229,9 @@ async def confirm_interview(
     request: Request,
     db: DbSession,
 ) -> ApiResponse[InterviewConfirmResult]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session, requirement = await service.confirm(session_id, payload)
     analysis_failed = requirement.analysis_status == AnalysisStatus.FAILED
     return ApiResponse(
@@ -209,7 +253,9 @@ async def confirm_interview(
 def abandon_interview(
     session_id: str, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
-    service = InterviewService(db)
+    service, _ = _session_with_access(
+        db, session_id, actor=request.state.current_user, writable=True
+    )
     session = service.abandon(session_id)
     return ApiResponse(
         message="访谈已放弃",

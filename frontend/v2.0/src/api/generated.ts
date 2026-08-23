@@ -24,6 +24,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询登录部门
+         * @description 公开返回登录和首次注册可选择的部门 ID 与名称。
+         */
+        get: operations["list_login_departments_api_v1_auth_departments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V3.0】 首次注册
+         * @description 使用部门、姓名和一次性邀请码创建普通成员并建立登录会话。
+         */
+        post: operations["register_api_v1_auth_registrations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V3.0】 统一密码登录
+         * @description 使用部门、姓名和公司统一密码建立服务端会话。
+         */
+        post: operations["login_api_v1_auth_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询当前用户
+         * @description 返回当前用户、角色和写请求所需的 CSRF 令牌。
+         */
+        get: operations["me_api_v1_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * 【V3.0】 退出登录
+         * @description 撤销当前服务端会话并清除 HttpOnly Cookie。
+         */
+        delete: operations["logout_api_v1_auth_session_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects": {
         parameters: {
             query?: never;
@@ -32,16 +132,64 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 【V1.1】 查询项目列表
-         * @description 分页查询项目。
+         * 【V3.0】 查询项目列表
+         * @description 普通成员分页查询本人项目；管理员分页查询全部项目。
          */
         get: operations["list_projects_api_v1_projects_get"];
         put?: never;
         /**
-         * 【V1.1】 创建项目
-         * @description 创建需求所属项目。
+         * 【V3.0】 创建项目
+         * @description 创建需求所属项目，并自动将当前用户加入项目成员。
          */
         post: operations["create_project_api_v1_projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询项目详情
+         * @description 查询当前用户可见的项目详情、修订号和统计信息。
+         */
+        get: operations["get_project_api_v1_projects__project_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 【V3.0】 更新项目
+         * @description 项目成员使用修订号编辑、归档或重新打开项目。
+         */
+        patch: operations["update_project_api_v1_projects__project_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询项目成员
+         * @description 返回项目成员、部门、任务数量和成员集合修订号。
+         */
+        get: operations["list_project_members_api_v1_projects__project_id__members_get"];
+        /**
+         * 【V3.0】 保存项目成员
+         * @description 用完整用户 ID 集合和成员修订号原子保存项目成员。
+         */
+        put: operations["save_project_members_api_v1_projects__project_id__members_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -406,12 +554,16 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * 【V3.0】 删除部门
+         * @description 永久删除没有用户、项目或邀请码引用的部门。
+         */
+        delete: operations["delete_department_api_v1_departments__department_id__delete"];
         options?: never;
         head?: never;
         /**
-         * 【V1.1】 更新部门
-         * @description 修改部门名称或状态。
+         * 【V3.0】 更新部门
+         * @description 修改部门名称。
          */
         patch: operations["update_department_api_v1_departments__department_id__patch"];
         trace?: never;
@@ -460,6 +612,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询用户选择列表
+         * @description 供项目成员和负责人选择器按姓名或部门查询已注册用户。
+         */
+        get: operations["list_users_api_v1_users_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -469,6 +641,22 @@ export interface components {
          * @enum {string}
          */
         AnalysisStatus: "PENDING" | "ANALYZING" | "ANALYZED" | "FAILED";
+        /** ApiResponse[AuthSessionRead] */
+        ApiResponse_AuthSessionRead_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["AuthSessionRead"];
+            /** Request Id */
+            request_id?: string | null;
+        };
         /** ApiResponse[BatchAnalyzeAccepted] */
         ApiResponse_BatchAnalyzeAccepted_: {
             /**
@@ -629,6 +817,38 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
+        /** ApiResponse[PageData[UserRead]] */
+        ApiResponse_PageData_UserRead__: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["PageData_UserRead_"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[ProjectMemberList] */
+        ApiResponse_ProjectMemberList_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["ProjectMemberList"];
+            /** Request Id */
+            request_id?: string | null;
+        };
         /** ApiResponse[ProjectRead] */
         ApiResponse_ProjectRead_: {
             /**
@@ -661,6 +881,25 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
+        /** ApiResponse[dict[str, bool]] */
+        ApiResponse_dict_str__bool__: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            /** Data */
+            data: {
+                [key: string]: boolean;
+            };
+            /** Request Id */
+            request_id?: string | null;
+        };
         /** ApiResponse[dict[str, str]] */
         ApiResponse_dict_str__str__: {
             /**
@@ -680,6 +919,23 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
+        /** ApiResponse[list[DepartmentOption]] */
+        ApiResponse_list_DepartmentOption__: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            /** Data */
+            data: components["schemas"]["DepartmentOption"][];
+            /** Request Id */
+            request_id?: string | null;
+        };
         /** ApiResponse[list[InterviewDraftRead]] */
         ApiResponse_list_InterviewDraftRead__: {
             /**
@@ -696,6 +952,12 @@ export interface components {
             data: components["schemas"]["InterviewDraftRead"][];
             /** Request Id */
             request_id?: string | null;
+        };
+        /** AuthSessionRead */
+        AuthSessionRead: {
+            user: components["schemas"]["CurrentUserRead"];
+            /** Csrf Token */
+            csrf_token: string;
         };
         /** BatchAnalyzeAccepted */
         BatchAnalyzeAccepted: {
@@ -723,11 +985,33 @@ export interface components {
         Body_upload_interview_attachment_api_v1_interviews_attachments_post: {
             /** File */
             file: string;
-            /** Uploaded By */
-            uploaded_by?: string | null;
+        };
+        /** CurrentUserRead */
+        CurrentUserRead: {
+            /** Id */
+            id: string;
+            /** Department Id */
+            department_id: string;
+            /** Department Name */
+            department_name: string;
+            /** Name */
+            name: string;
+            role: components["schemas"]["UserRole"];
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
         };
         /** DepartmentCreate */
         DepartmentCreate: {
+            /** Name */
+            name: string;
+        };
+        /** DepartmentOption */
+        DepartmentOption: {
+            /** Id */
+            id: string;
             /** Name */
             name: string;
         };
@@ -737,7 +1021,6 @@ export interface components {
             id: string;
             /** Name */
             name: string;
-            status: components["schemas"]["DepartmentStatus"];
             /**
              * User Count
              * @default 0
@@ -749,6 +1032,11 @@ export interface components {
              */
             project_count: number;
             /**
+             * Invitation Count
+             * @default 0
+             */
+            invitation_count: number;
+            /**
              * Created Time
              * Format: date-time
              */
@@ -759,16 +1047,10 @@ export interface components {
              */
             updated_time: string;
         };
-        /**
-         * DepartmentStatus
-         * @enum {string}
-         */
-        DepartmentStatus: "ACTIVE" | "DISABLED";
         /** DepartmentUpdate */
         DepartmentUpdate: {
             /** Name */
-            name?: string | null;
-            status?: components["schemas"]["DepartmentStatus"] | null;
+            name: string;
         };
         /** DifyInterviewField */
         DifyInterviewField: {
@@ -857,8 +1139,6 @@ export interface components {
              * @default
              */
             raw_content: string;
-            /** Created By */
-            created_by?: string | null;
             /** Client Message Id */
             client_message_id: string;
             /** Attachment Ids */
@@ -996,8 +1276,8 @@ export interface components {
         InvitationCreate: {
             /** Department Id */
             department_id: string;
-            /** User Name */
-            user_name?: string | null;
+            /** Intended User Name */
+            intended_user_name?: string | null;
         };
         /** InvitationRead */
         InvitationRead: {
@@ -1009,9 +1289,15 @@ export interface components {
             department_id: string;
             /** Department Name */
             department_name: string;
-            /** User Name */
-            user_name: string | null;
+            /** Intended User Name */
+            intended_user_name: string | null;
             status: components["schemas"]["InvitationStatus"];
+            /** Used By User Id */
+            used_by_user_id: string | null;
+            /** Used By User Name */
+            used_by_user_name: string | null;
+            /** Created By */
+            created_by: string | null;
             /**
              * Created Time
              * Format: date-time
@@ -1019,6 +1305,8 @@ export interface components {
             created_time: string;
             /** Used Time */
             used_time: string | null;
+            /** Disabled Time */
+            disabled_time: string | null;
         };
         /**
          * InvitationStatus
@@ -1069,6 +1357,17 @@ export interface components {
             /** Page Size */
             page_size: number;
         };
+        /** PageData[UserRead] */
+        PageData_UserRead_: {
+            /** Items */
+            items: components["schemas"]["UserRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+        };
         /** ProjectCreate */
         ProjectCreate: {
             /** Name */
@@ -1082,8 +1381,42 @@ export interface components {
             project_context: string;
             /** Department Id */
             department_id?: string | null;
-            /** Created By */
-            created_by?: string | null;
+        };
+        /** ProjectMemberList */
+        ProjectMemberList: {
+            /** Items */
+            items: components["schemas"]["ProjectMemberRead"][];
+            /** Member Revision */
+            member_revision: number;
+        };
+        /** ProjectMemberRead */
+        ProjectMemberRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string;
+            /** Department Id */
+            department_id: string;
+            /** Department Name */
+            department_name: string;
+            role: components["schemas"]["UserRole"];
+            /**
+             * Task Count
+             * @default 0
+             */
+            task_count: number;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+        };
+        /** ProjectMembersUpdate */
+        ProjectMembersUpdate: {
+            /** User Ids */
+            user_ids: string[];
+            /** Expected Member Revision */
+            expected_member_revision: number;
         };
         /** ProjectRead */
         ProjectRead: {
@@ -1100,6 +1433,15 @@ export interface components {
             /** Created By */
             created_by: string | null;
             status: components["schemas"]["ProjectStatus"];
+            /** Revision */
+            revision: number;
+            /** Member Revision */
+            member_revision: number;
+            /**
+             * Member Count
+             * @default 0
+             */
+            member_count: number;
             /**
              * Requirement Count
              * @default 0
@@ -1126,14 +1468,38 @@ export interface components {
          * @enum {string}
          */
         ProjectStatus: "ACTIVE" | "ARCHIVED";
+        /** ProjectUpdate */
+        ProjectUpdate: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Project Context */
+            project_context?: string | null;
+            /** Department Id */
+            department_id?: string | null;
+            status?: components["schemas"]["ProjectStatus"] | null;
+        };
+        /** RegistrationRequest */
+        RegistrationRequest: {
+            /** Department Id */
+            department_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Invitation Code
+             * Format: password
+             */
+            invitation_code: string;
+        };
         /** RequirementCreate */
         RequirementCreate: {
             /** Project Id */
             project_id: string;
             /** Raw Content */
             raw_content: string;
-            /** Created By */
-            created_by?: string | null;
         };
         /**
          * RequirementPriority
@@ -1201,11 +1567,45 @@ export interface components {
          * @enum {string}
          */
         RequirementType: "NEW_FEATURE" | "BUG" | "OPTIMIZATION";
+        /** SessionCreateRequest */
+        SessionCreateRequest: {
+            /** Department Id */
+            department_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Shared Password
+             * Format: password
+             */
+            shared_password: string;
+        };
         /**
          * SourceChannel
          * @enum {string}
          */
         SourceChannel: "MANAGEMENT_WEB" | "PRODUCT_WEB" | "MINI_PROGRAM" | "WECHAT" | "WECOM" | "FEISHU" | "OTHER";
+        /** UserRead */
+        UserRead: {
+            /** Id */
+            id: string;
+            /** Department Id */
+            department_id: string;
+            /** Department Name */
+            department_name: string;
+            /** Name */
+            name: string;
+            role: components["schemas"]["UserRole"];
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+        };
+        /**
+         * UserRole
+         * @enum {string}
+         */
+        UserRole: "ADMIN" | "MEMBER";
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1248,6 +1648,143 @@ export interface operations {
             };
         };
     };
+    list_login_departments_api_v1_auth_departments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_DepartmentOption__"];
+                };
+            };
+        };
+    };
+    register_api_v1_auth_registrations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_AuthSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_v1_auth_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_AuthSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_v1_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_AuthSessionRead_"];
+                };
+            };
+        };
+    };
+    logout_api_v1_auth_session_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_dict_str__bool__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_projects_api_v1_projects_get: {
         parameters: {
             query?: {
@@ -1255,7 +1792,9 @@ export interface operations {
                 page_size?: number;
                 status?: components["schemas"]["ProjectStatus"] | null;
             };
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1284,7 +1823,9 @@ export interface operations {
     create_project_api_v1_projects_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1314,6 +1855,146 @@ export interface operations {
             };
         };
     };
+    get_project_api_v1_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ProjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_api_v1_projects__project_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ProjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_project_members_api_v1_projects__project_id__members_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ProjectMemberList_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_project_members_api_v1_projects__project_id__members_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectMembersUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_ProjectMemberList_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_requirements_api_v1_requirements_get: {
         parameters: {
             query?: {
@@ -1326,7 +2007,9 @@ export interface operations {
                 analysis_status?: components["schemas"]["AnalysisStatus"] | null;
                 is_fake?: boolean | null;
             };
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1355,7 +2038,9 @@ export interface operations {
     create_requirement_api_v1_requirements_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1388,7 +2073,9 @@ export interface operations {
     get_requirement_api_v1_requirements__requirement_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 requirement_id: string;
             };
@@ -1419,7 +2106,9 @@ export interface operations {
     get_requirement_interview_api_v1_requirements__requirement_id__interview_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 requirement_id: string;
             };
@@ -1450,7 +2139,9 @@ export interface operations {
     reserve_batch_analysis_api_v1_requirements_batch_analyze_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1483,7 +2174,9 @@ export interface operations {
     create_interview_api_v1_interviews_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1516,10 +2209,11 @@ export interface operations {
     list_interview_drafts_api_v1_interviews_drafts_get: {
         parameters: {
             query?: {
-                created_by?: string | null;
                 limit?: number;
             };
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1548,7 +2242,9 @@ export interface operations {
     upload_interview_attachment_api_v1_interviews_attachments_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1581,7 +2277,9 @@ export interface operations {
     preview_interview_attachment_api_v1_interviews_attachments__attachment_id__content_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 attachment_id: string;
             };
@@ -1610,7 +2308,9 @@ export interface operations {
     get_interview_api_v1_interviews__session_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1641,7 +2341,9 @@ export interface operations {
     answer_interview_api_v1_interviews__session_id__messages_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1676,7 +2378,9 @@ export interface operations {
     skip_interview_question_api_v1_interviews__session_id__actions_skip_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1711,7 +2415,9 @@ export interface operations {
     mark_interview_unknown_api_v1_interviews__session_id__actions_unknown_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1746,7 +2452,9 @@ export interface operations {
     summarize_interview_api_v1_interviews__session_id__actions_summarize_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1777,7 +2485,9 @@ export interface operations {
     update_interview_summary_api_v1_interviews__session_id__summary_patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1812,7 +2522,9 @@ export interface operations {
     confirm_interview_api_v1_interviews__session_id__confirm_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1847,7 +2559,9 @@ export interface operations {
     abandon_interview_api_v1_interviews__session_id__abandon_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 session_id: string;
             };
@@ -1881,9 +2595,10 @@ export interface operations {
                 page?: number;
                 page_size?: number;
                 keyword?: string | null;
-                status?: components["schemas"]["DepartmentStatus"] | null;
             };
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1912,7 +2627,9 @@ export interface operations {
     create_department_api_v1_departments_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1942,10 +2659,45 @@ export interface operations {
             };
         };
     };
+    delete_department_api_v1_departments__department_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                department_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_dict_str__bool__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_department_api_v1_departments__department_id__patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 department_id: string;
             };
@@ -1986,7 +2738,9 @@ export interface operations {
                 department_id?: string | null;
                 status?: components["schemas"]["InvitationStatus"] | null;
             };
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2015,7 +2769,9 @@ export interface operations {
     create_invitation_api_v1_invitations_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2048,7 +2804,9 @@ export interface operations {
     disable_invitation_api_v1_invitations__invitation_id__disable_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
             path: {
                 invitation_id: string;
             };
@@ -2063,6 +2821,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_InvitationRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_users_api_v1_users_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string | null;
+                department_id?: string | null;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_PageData_UserRead__"];
                 };
             };
             /** @description Validation Error */

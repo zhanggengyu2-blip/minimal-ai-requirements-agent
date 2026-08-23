@@ -16,6 +16,7 @@ from app.schemas.requirement import (
 )
 from app.schemas.interview import InterviewSessionRead
 from app.services.interview_service import InterviewService
+from app.services.project_service import ProjectService
 from app.services.requirement_service import RequirementService
 
 
@@ -27,6 +28,7 @@ DbSession = Annotated[Session, Depends(get_db)]
 async def create_requirement(
     payload: RequirementCreate, request: Request, db: DbSession
 ) -> ApiResponse[RequirementRead]:
+    ProjectService(db).require_writable(payload.project_id, actor=request.state.current_user)
     requirement = await RequirementService(db).create_and_analyze(
         payload, created_by=request.state.current_user.id
     )
@@ -66,6 +68,7 @@ def list_requirements(
         requirement_type=requirement_type,
         analysis_status=analysis_status,
         is_fake=is_fake,
+        actor=request.state.current_user,
     )
     return ApiResponse(
         data=PageData(
@@ -80,7 +83,9 @@ def list_requirements(
 
 @router.get("/{requirement_id}", response_model=ApiResponse[RequirementRead])
 def get_requirement(requirement_id: str, request: Request, db: DbSession) -> ApiResponse[RequirementRead]:
-    requirement = RequirementService(db).get(requirement_id)
+    requirement = RequirementService(db).get_visible(
+        requirement_id, actor=request.state.current_user
+    )
     return ApiResponse(
         data=RequirementRead.model_validate(requirement), request_id=request.state.request_id
     )
@@ -92,7 +97,9 @@ def get_requirement(requirement_id: str, request: Request, db: DbSession) -> Api
 def get_requirement_interview(
     requirement_id: str, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
-    requirement = RequirementService(db).get(requirement_id)
+    requirement = RequirementService(db).get_visible(
+        requirement_id, actor=request.state.current_user
+    )
     if not requirement.interview_session_id:
         raise NotFoundError("该需求没有关联访谈记录")
     service = InterviewService(db)
@@ -108,8 +115,14 @@ def get_requirement_interview(
     status_code=status.HTTP_202_ACCEPTED,
 )
 def reserve_batch_analysis(
-    payload: BatchAnalyzeRequest, request: Request
+    payload: BatchAnalyzeRequest, request: Request, db: DbSession
 ) -> ApiResponse[BatchAnalyzeAccepted]:
+    service = RequirementService(db)
+    for requirement_id in payload.requirement_ids:
+        requirement = service.get_visible(requirement_id, actor=request.state.current_user)
+        ProjectService(db).require_writable(
+            requirement.project_id, actor=request.state.current_user
+        )
     data = BatchAnalyzeAccepted(task_id=uuid.uuid4().hex, total=len(payload.requirement_ids))
     return ApiResponse(
         code="ACCEPTED",

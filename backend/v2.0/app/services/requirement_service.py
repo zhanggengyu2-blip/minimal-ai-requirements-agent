@@ -8,9 +8,12 @@ from app.core.exceptions import AppError, NotFoundError
 from app.db.models import (
     AnalysisStatus,
     Project,
+    ProjectMember,
     Requirement,
     RequirementPriority,
     RequirementType,
+    UserAccount,
+    UserRole,
 )
 from app.schemas.requirement import RequirementCreate
 from app.services.dify_service import DifyService
@@ -120,6 +123,15 @@ class RequirementService:
             raise NotFoundError("需求不存在")
         return requirement
 
+    def get_visible(self, requirement_id: str, *, actor: UserAccount) -> Requirement:
+        requirement = self.get(requirement_id)
+        if actor.role == UserRole.ADMIN:
+            return requirement
+        membership = self.db.get(ProjectMember, (requirement.project_id, actor.id))
+        if membership is None:
+            raise NotFoundError("需求不存在")
+        return requirement
+
     def list(
         self,
         *,
@@ -131,10 +143,22 @@ class RequirementService:
         requirement_type: RequirementType | None,
         analysis_status: AnalysisStatus | None,
         is_fake: bool | None,
+        actor: UserAccount | None = None,
     ) -> tuple[list[Requirement], int]: 
         filters = []
         if project_id:
+            if actor is not None and self.db.get(Project, project_id) is None:
+                raise NotFoundError("项目不存在")
+            if actor is not None and actor.role != UserRole.ADMIN:
+                membership = self.db.get(ProjectMember, (project_id, actor.id))
+                if membership is None:
+                    raise NotFoundError("项目不存在")
             filters.append(Requirement.project_id == project_id)
+        elif actor is not None and actor.role != UserRole.ADMIN:
+            visible_project_ids = select(ProjectMember.project_id).where(
+                ProjectMember.user_id == actor.id
+            )
+            filters.append(Requirement.project_id.in_(visible_project_ids))
         if keyword:
             escaped = keyword.replace("%", r"\%").replace("_", r"\_")
             pattern = f"%{escaped}%"

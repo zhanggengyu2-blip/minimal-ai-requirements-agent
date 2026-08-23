@@ -124,6 +124,8 @@ class InterviewService:
             )
         )
         if existing is not None:
+            if existing.project_id != payload.project_id or existing.created_by != created_by:
+                raise ConflictError("该客户端消息标识已用于其他访谈")
             return existing
 
         project = self.db.get(Project, payload.project_id)
@@ -325,7 +327,13 @@ class InterviewService:
         self.db.commit()
         return session
 
-    def drafts(self, *, created_by: str | None, limit: int = 20) -> list[InterviewSession]:
+    def drafts(
+        self,
+        *,
+        created_by: str | None,
+        visible_project_ids=None,
+        limit: int = 20,
+    ) -> list[InterviewSession]:
         query = select(InterviewSession).where(
             InterviewSession.status.in_(
                 [
@@ -338,6 +346,8 @@ class InterviewService:
         )
         if created_by is not None:
             query = query.where(InterviewSession.created_by == created_by)
+        if visible_project_ids is not None:
+            query = query.where(InterviewSession.project_id.in_(visible_project_ids))
         return list(
             self.db.scalars(query.order_by(InterviewSession.updated_time.desc()).limit(limit))
         )

@@ -3,7 +3,6 @@ import type {
   ProjectStatus,
   RequirementPriority,
   RequirementType,
-  DepartmentStatus,
   InvitationStatus,
 } from './api'
 
@@ -30,11 +29,6 @@ export const ANALYSIS_STATUS: Record<AnalysisStatus, string> = {
   ANALYZING: '分析中',
   ANALYZED: '分析完成',
   FAILED: '分析失败',
-}
-
-export const DEPARTMENT_STATUS: Record<DepartmentStatus, string> = {
-  ACTIVE: '启用',
-  DISABLED: '停用',
 }
 
 export const INVITATION_STATUS: Record<InvitationStatus, string> = {

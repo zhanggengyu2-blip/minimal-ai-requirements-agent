@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { InfoFilled, Plus, Search } from '@element-plus/icons-vue'
-import type { Department, DepartmentStatus } from '../api'
+import type { Department } from '../api'
 import { departmentApi } from '../api'
-import { DEPARTMENT_STATUS, formatDate } from '../constants'
+import { formatDate } from '../constants'
 
 const emit = defineEmits<{ changed: [] }>()
 const loading = ref(false)
@@ -20,7 +20,6 @@ const query = reactive<{
   page: number
   page_size: number
   keyword?: string
-  status?: DepartmentStatus
 }>({ page: 1, page_size: 10 })
 const rules: FormRules = {
   name: [
@@ -79,20 +78,6 @@ const submit = async () => {
     submitting.value = false
   }
 }
-const toggleStatus = async (department: Department) => {
-  const disabling = department.status === 'ACTIVE'
-  await ElMessageBox.confirm(
-    disabling
-      ? `停用后，“${department.name}”将不再用于注册和生成邀请码，确认停用吗？`
-      : `确认重新启用“${department.name}”吗？`,
-    disabling ? '停用部门' : '启用部门',
-    { type: disabling ? 'warning' : 'info', confirmButtonText: '确认', cancelButtonText: '取消' },
-  )
-  await departmentApi.update(department.id, { status: disabling ? 'DISABLED' : 'ACTIVE' })
-  ElMessage.success(disabling ? '部门已停用' : '部门已启用')
-  await load()
-  emit('changed')
-}
 onMounted(load)
 </script>
 
@@ -107,7 +92,7 @@ onMounted(load)
     </div>
     <div class="organization-note">
       <el-icon><InfoFilled /></el-icon>
-      <span>仅支持一级部门；已关联用户或项目的部门不可删除，只能停用。</span>
+      <span>仅支持一级部门；已关联用户、项目或邀请码的部门不可删除。</span>
     </div>
     <div class="organization-filters">
       <el-input
@@ -119,9 +104,6 @@ onMounted(load)
         @input="delayedSearch"
         @clear="load"
       />
-      <el-select v-model="query.status" clearable placeholder="全部状态" @change="query.page = 1; load()">
-        <el-option v-for="(label, key) in DEPARTMENT_STATUS" :key="key" :label="label" :value="key" />
-      </el-select>
     </div>
     <section v-loading="loading" class="department-list">
       <article v-for="department in rows" :key="department.id" class="department-card">
@@ -129,9 +111,6 @@ onMounted(load)
           <strong>{{ department.name }}</strong>
           <span>DEPT-{{ department.id.slice(-6).toUpperCase() }}</span>
         </div>
-        <el-tag :type="department.status === 'ACTIVE' ? 'success' : 'info'" effect="light">
-          {{ DEPARTMENT_STATUS[department.status] }}
-        </el-tag>
         <div class="department-data"><label>创建时间</label>{{ formatDate(department.created_time).slice(0, 10) }}</div>
         <div class="department-data"><label>更新时间</label>{{ formatDate(department.updated_time).slice(0, 10) }}</div>
         <div class="department-data">
@@ -139,14 +118,6 @@ onMounted(load)
         </div>
         <div class="department-actions">
           <el-button link type="primary" @click="openEdit(department)">编辑</el-button>
-          <i />
-          <el-button
-            link
-            :type="department.status === 'ACTIVE' ? 'danger' : 'success'"
-            @click="toggleStatus(department)"
-          >
-            {{ department.status === 'ACTIVE' ? '停用' : '启用' }}
-          </el-button>
         </div>
       </article>
       <el-empty v-if="!loading && !rows.length" description="暂无符合条件的部门" />

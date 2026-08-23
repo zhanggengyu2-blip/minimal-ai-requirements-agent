@@ -27,7 +27,7 @@ const rules: FormRules = {
   department_id: [{ required: true, message: '请选择所属部门', trigger: 'change' }],
   user_name: [{ max: 50, message: '使用人姓名不能超过50个字符', trigger: 'blur' }],
 }
-const activeDepartments = () => props.departments.filter((item) => item.status === 'ACTIVE')
+const availableDepartments = () => props.departments
 
 const loadStats = async () => {
   const statuses: InvitationStatus[] = ['UNUSED', 'USED', 'DISABLED']
@@ -55,7 +55,7 @@ const delayedSearch = () => {
   }, 300)
 }
 const openCreate = () => {
-  form.department_id = activeDepartments()[0]?.id || ''
+  form.department_id = availableDepartments()[0]?.id || ''
   form.user_name = ''
   formRef.value?.clearValidate()
   dialogVisible.value = true
@@ -67,7 +67,7 @@ const submit = async () => {
   try {
     const item = await invitationApi.create({
       department_id: form.department_id,
-      user_name: form.user_name || null,
+      intended_user_name: form.user_name || null,
     })
     dialogVisible.value = false
     ElMessage.success(`邀请码 ${item.code} 生成成功`)
@@ -136,7 +136,7 @@ onMounted(load)
         </el-table-column>
         <el-table-column prop="department_name" label="所属部门" min-width="130" />
         <el-table-column label="使用人姓名" min-width="135">
-          <template #default="{ row }">{{ row.user_name || '—' }}</template>
+          <template #default="{ row }">{{ row.used_by_user_name || row.intended_user_name || '—' }}</template>
         </el-table-column>
         <el-table-column label="使用状态" width="125">
           <template #default="{ row }">
@@ -175,7 +175,7 @@ onMounted(load)
         <el-form-item label="所属部门" prop="department_id">
           <el-select v-model="form.department_id" placeholder="请选择部门" style="width: 100%">
             <el-option
-              v-for="department in activeDepartments()"
+              v-for="department in availableDepartments()"
               :key="department.id"
               :label="department.name"
               :value="department.id"

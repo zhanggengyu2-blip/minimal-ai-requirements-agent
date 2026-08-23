@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from app.db.models import Department, Project, ProjectStatus
+from app.db.models import Department, Requirement
 from app.main import app
 from app.schemas.dify import DifyAnalysisResult
 from app.services.dify_service import DifyWorkflowResult
@@ -128,9 +128,19 @@ def test_requirement_filters_and_pagination_contract():
     assert invalid_page.status_code == 422
 
 
-def test_batch_analysis_endpoint_is_explicitly_reserved():
-    ids = ["a" * 32, "b" * 32]
+def test_batch_analysis_endpoint_is_explicitly_reserved(db_session):
     with TestClient(app) as client:
+        project = client.post(
+            "/api/v1/projects",
+            json={"name": "批量分析项目", "project_context": "验证批量分析预留接口"},
+        ).json()["data"]
+        requirements = [
+            Requirement(project_id=project["id"], raw_content="需求一"),
+            Requirement(project_id=project["id"], raw_content="需求二"),
+        ]
+        db_session.add_all(requirements)
+        db_session.commit()
+        ids = [item.id for item in requirements]
         response = client.post("/api/v1/requirements/batch-analyze", json={"requirement_ids": ids})
         duplicate = client.post(
             "/api/v1/requirements/batch-analyze",
@@ -162,32 +172,33 @@ def test_department_with_invitation_cannot_be_deleted(db_session):
     assert response.json()["details"]["invitation_count"] == 1
 
 
-def test_archived_project_cannot_start_interview(db_session):
-    project = Project(
-        name="归档项目",
-        project_context="不能创建访谈",
-        status=ProjectStatus.ARCHIVED,
-    )
-    db_session.add(project)
-    db_session.commit()
-
+def test_archived_project_cannot_start_interview():
     mocked = AsyncMock()
     with patch(
         "app.services.dify_interview_service.DifyInterviewService.run_turn",
         new=mocked,
     ):
         with TestClient(app) as client:
+            project = client.post(
+                "/api/v1/projects",
+                json={"name": "归档项目", "project_context": "不能创建访谈"},
+            ).json()["data"]
+            archived = client.patch(
+                f"/api/v1/projects/{project['id']}",
+                json={"expected_revision": project["revision"], "status": "ARCHIVED"},
+            )
+            assert archived.status_code == 200
             response = client.post(
                 "/api/v1/interviews",
                 json={
-                    "project_id": project.id,
+                    "project_id": project["id"],
                     "raw_content": "归档项目需求",
                     "client_message_id": "archived-project-message",
                 },
             )
 
-    assert response.status_code == 409
-    assert response.json()["code"] == "CONFLICT"
+    assert response.status_code == 403
+    assert response.json()["code"] == "PERMISSION_DENIED"
     mocked.assert_not_awaited()
 
 
