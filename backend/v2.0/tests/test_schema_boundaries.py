@@ -140,6 +140,6 @@ def test_nullable_read_field_is_still_required():
         )
 
 
-def test_invitation_create_normalizes_empty_user_name():
-    invitation = InvitationCreate(department_id="d" * 32, user_name="   ")
-    assert invitation.user_name is None
+def test_invitation_create_normalizes_empty_intended_user_name():
+    invitation = InvitationCreate(department_id="d" * 32, intended_user_name="   ")
+    assert invitation.intended_user_name is None

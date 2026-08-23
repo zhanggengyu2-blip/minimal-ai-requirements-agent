@@ -22,19 +22,23 @@ class RequirementService:
         self.dify = dify or DifyService()
         self.settings = get_settings()
 
-    async def create_and_analyze(self, payload: RequirementCreate) -> Requirement:
+    async def create_and_analyze(
+        self, payload: RequirementCreate, *, created_by: str
+    ) -> Requirement:
         project = self.db.get(Project, payload.project_id)
         if project is None:
             raise NotFoundError("项目不存在")
 
-        requirement = Requirement(**payload.model_dump(), analysis_status=AnalysisStatus.PENDING)
+        requirement = Requirement(
+            **payload.model_dump(),
+            created_by=created_by,
+            analysis_status=AnalysisStatus.PENDING,
+        )
         self.db.add(requirement)
         self.db.commit()
         self.db.refresh(requirement)
 
-        return await self.analyze_existing(
-            requirement, user=payload.created_by or "anonymous"
-        )
+        return await self.analyze_existing(requirement, user=created_by)
 
     async def create_from_interview(
         self,

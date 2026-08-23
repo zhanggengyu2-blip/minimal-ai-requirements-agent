@@ -11,7 +11,6 @@ class ProjectCreate(ORMModel):
     description: str = Field(default="", max_length=2000)
     project_context: str = Field(min_length=1, max_length=10000)
     department_id: str | None = Field(default=None, max_length=32)
-    created_by: str | None = Field(default=None, max_length=32)
 
     @field_validator("name", "project_context")
     @classmethod
@@ -33,4 +32,3 @@ class ProjectRead(ORMModel):
     requirement_count: int = 0
     created_time: datetime
     updated_time: datetime
-

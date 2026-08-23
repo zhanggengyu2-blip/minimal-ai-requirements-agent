@@ -1,12 +1,12 @@
 from unittest.mock import AsyncMock
 
 import pytest
+from sqlalchemy import select
 
 from app.core.exceptions import ConflictError, DifyInterviewTimeoutError, DifyTimeoutError
 from app.db.models import (
     AnalysisStatus,
     Department,
-    DepartmentStatus,
     InterviewStatus,
     InvitationCode,
     InvitationStatus,
@@ -14,6 +14,8 @@ from app.db.models import (
     Requirement,
     RequirementPriority,
     RequirementType,
+    UserAccount,
+    UserRole,
 )
 from app.schemas.dify import (
     DifyAnalysisResult,
@@ -94,7 +96,8 @@ async def test_requirement_service_success_writes_analysis_fields(db_session):
     service = RequirementService(db_session, dify=dify)
 
     requirement = await service.create_and_analyze(
-        RequirementCreate(project_id=project.id, raw_content="需要批量导入")
+        RequirementCreate(project_id=project.id, raw_content="需要批量导入"),
+        created_by="a" * 32,
     )
 
     assert requirement.analysis_status == AnalysisStatus.ANALYZED
@@ -113,7 +116,8 @@ async def test_requirement_service_app_error_persists_failed_state(db_session):
     service = RequirementService(db_session, dify=dify)
 
     requirement = await service.create_and_analyze(
-        RequirementCreate(project_id=project.id, raw_content="超时需求")
+        RequirementCreate(project_id=project.id, raw_content="超时需求"),
+        created_by="a" * 32,
     )
 
     db_session.expire_all()
@@ -194,7 +198,7 @@ def test_requirement_list_combines_filters_and_escapes_wildcards(db_session):
     assert [item.id for item in items] == [wanted.id]
 
 
-def test_department_project_count_and_disabled_invitation_guard(db_session):
+def test_department_reference_counts_and_invitation_creation(db_session):
     department = Department(name="测试部门")
     db_session.add(department)
     db_session.flush()
@@ -205,28 +209,29 @@ def test_department_project_count_and_disabled_invitation_guard(db_session):
     assert read.project_count == 1
     assert read.user_count == 0
 
-    department.status = DepartmentStatus.DISABLED
-    db_session.commit()
-    with pytest.raises(ConflictError, match="停用部门"):
-        InvitationService(db_session).create(
-            InvitationCreate(department_id=department.id, user_name="用户")
-        )
+    admin = db_session.scalar(select(UserAccount).where(UserAccount.role == UserRole.ADMIN))
+    invitation = InvitationService(db_session).create(
+        InvitationCreate(department_id=department.id, intended_user_name="用户"),
+        actor_id=admin.id,
+    )
+    assert invitation.intended_user_name == "用户"
+    assert DepartmentService(db_session)._to_read(department).invitation_count == 1
 
 
 def test_used_invitation_cannot_be_disabled(db_session):
     department = Department(name="邀请码部门")
     db_session.add(department)
     db_session.flush()
-    invitation = InvitationCode(
-        code="TEST-CODE",
-        department_id=department.id,
-        status=InvitationStatus.USED,
+    admin = db_session.scalar(select(UserAccount).where(UserAccount.role == UserRole.ADMIN))
+    invitation_read = InvitationService(db_session).create(
+        InvitationCreate(department_id=department.id), actor_id=admin.id
     )
-    db_session.add(invitation)
+    invitation = db_session.get(InvitationCode, invitation_read.id)
+    invitation.status = InvitationStatus.USED
     db_session.commit()
 
     with pytest.raises(ConflictError, match="已使用"):
-        InvitationService(db_session).disable(invitation.id)
+        InvitationService(db_session).disable(invitation_read.id)
 
 
 @pytest.mark.asyncio
@@ -241,7 +246,8 @@ async def test_interview_two_agent_failures_enter_confirming(db_session):
             project_id=project.id,
             raw_content="需要一个功能",
             client_message_id="initial-failure",
-        )
+        ),
+        created_by="a" * 32,
     )
     assert session.status == InterviewStatus.INTERVIEWING
     assert session.consecutive_agent_failures == 1
@@ -266,7 +272,8 @@ async def test_manual_summary_edit_is_not_overwritten_by_ai(db_session):
             project_id=project.id,
             raw_content="需要优化流程",
             client_message_id="manual-edit-initial",
-        )
+        ),
+        created_by="a" * 32,
     )
 
     service.update_summary(
@@ -322,7 +329,8 @@ async def test_interview_confirmation_is_idempotent_after_requirement_link(db_se
             project_id=project.id,
             raw_content="访谈确认需求",
             client_message_id="confirm-initial",
-        )
+        ),
+        created_by="a" * 32,
     )
     service.summarize(session.id)
 

@@ -41,15 +41,15 @@ class RequirementPriority(str, enum.Enum):
     P3 = "P3"
 
 
-class DepartmentStatus(str, enum.Enum):
-    ACTIVE = "ACTIVE"
-    DISABLED = "DISABLED"
-
-
 class InvitationStatus(str, enum.Enum):
     UNUSED = "UNUSED"
     USED = "USED"
     DISABLED = "DISABLED"
+
+
+class UserRole(str, enum.Enum):
+    ADMIN = "ADMIN"
+    MEMBER = "MEMBER"
 
 
 class InterviewStatus(str, enum.Enum):
@@ -96,39 +96,104 @@ class Department(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
-    status: Mapped[DepartmentStatus] = mapped_column(
-        Enum(DepartmentStatus, native_enum=False),
-        default=DepartmentStatus.ACTIVE,
-        nullable=False,
-        index=True,
+    created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    invitations: Mapped[list["InvitationCode"]] = relationship(back_populates="department")
+    users: Mapped[list["UserAccount"]] = relationship(back_populates="department")
+
+
+class UserAccount(Base):
+    __tablename__ = "user_account"
+    __table_args__ = (
+        UniqueConstraint("department_id", "normalized_name", name="uq_user_department_name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    department_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("department.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    normalized_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, native_enum=False), default=UserRole.MEMBER, nullable=False, index=True
+    )
+    invitation_id: Mapped[str | None] = mapped_column(
+        String(32), ForeignKey("invitation_code.id", ondelete="SET NULL"), nullable=True, unique=True
     )
     created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
     )
 
-    invitations: Mapped[list["InvitationCode"]] = relationship(
-        back_populates="department", cascade="all, delete-orphan"
+    department: Mapped[Department] = relationship(back_populates="users")
+    sessions: Mapped[list["AuthSession"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
     )
+
+
+class AuthSession(Base):
+    __tablename__ = "auth_session"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_digest: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    idle_expires_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    absolute_expires_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+    last_seen_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    user: Mapped[UserAccount] = relationship(back_populates="sessions")
 
 
 class InvitationCode(Base):
     __tablename__ = "invitation_code"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
-    code: Mapped[str] = mapped_column(String(9), unique=True, nullable=False, index=True)
+    code_digest: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    code_ciphertext: Mapped[str] = mapped_column(Text, nullable=False)
     department_id: Mapped[str] = mapped_column(
         String(32), ForeignKey("department.id", ondelete="RESTRICT"), nullable=False, index=True
     )
-    user_name: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    intended_user_name: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
     status: Mapped[InvitationStatus] = mapped_column(
         Enum(InvitationStatus, native_enum=False),
         default=InvitationStatus.UNUSED,
         nullable=False,
         index=True,
     )
+    used_by_user_id: Mapped[str | None] = mapped_column(
+        String(32),
+        ForeignKey(
+            "user_account.id",
+            ondelete="RESTRICT",
+            name="fk_invitation_used_by_user",
+            use_alter=True,
+        ),
+        nullable=True,
+        unique=True,
+    )
+    created_by: Mapped[str | None] = mapped_column(
+        String(32),
+        ForeignKey(
+            "user_account.id",
+            ondelete="RESTRICT",
+            name="fk_invitation_created_by_user",
+            use_alter=True,
+        ),
+        nullable=True,
+        index=True,
+    )
     created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
     used_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    disabled_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     department: Mapped[Department] = relationship(back_populates="invitations")
 

@@ -27,7 +27,9 @@ DbSession = Annotated[Session, Depends(get_db)]
 async def create_requirement(
     payload: RequirementCreate, request: Request, db: DbSession
 ) -> ApiResponse[RequirementRead]:
-    requirement = await RequirementService(db).create_and_analyze(payload)
+    requirement = await RequirementService(db).create_and_analyze(
+        payload, created_by=request.state.current_user.id
+    )
     if requirement.analysis_status == AnalysisStatus.FAILED:
         return ApiResponse(
             code="AI_ANALYSIS_FAILED",

@@ -21,6 +21,11 @@ OUTPUTS = (
 
 OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
     ("/api/v1/health", "get"): ("健康检查", "V1.1", "检查 FastAPI 服务是否可访问。"),
+    ("/api/v1/auth/departments", "get"): ("查询登录部门", "V3.0", "公开返回登录和首次注册可选择的部门 ID 与名称。"),
+    ("/api/v1/auth/registrations", "post"): ("首次注册", "V3.0", "使用部门、姓名和一次性邀请码创建普通成员并建立登录会话。"),
+    ("/api/v1/auth/sessions", "post"): ("统一密码登录", "V3.0", "使用部门、姓名和公司统一密码建立服务端会话。"),
+    ("/api/v1/auth/me", "get"): ("查询当前用户", "V3.0", "返回当前用户、角色和写请求所需的 CSRF 令牌。"),
+    ("/api/v1/auth/session", "delete"): ("退出登录", "V3.0", "撤销当前服务端会话并清除 HttpOnly Cookie。"),
     ("/api/v1/projects", "post"): ("创建项目", "V1.1", "创建需求所属项目。"),
     ("/api/v1/projects", "get"): ("查询项目列表", "V1.1", "分页查询项目。"),
     ("/api/v1/requirements", "post"): ("直接创建并分析需求", "V1.1", "不经过访谈，直接保存原始需求并调用需求分析 Workflow。"),
@@ -29,10 +34,12 @@ OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
     ("/api/v1/requirements/batch-analyze", "post"): ("批量分析需求（预留）", "V1.1", "当前仅返回预留任务，不执行实际批量分析。"),
     ("/api/v1/departments", "post"): ("创建部门", "V1.1", "创建内部组织部门。"),
     ("/api/v1/departments", "get"): ("查询部门列表", "V1.1", "分页查询部门。"),
-    ("/api/v1/departments/{department_id}", "patch"): ("更新部门", "V1.1", "修改部门名称或状态。"),
+    ("/api/v1/departments/{department_id}", "patch"): ("更新部门", "V3.0", "修改部门名称。"),
+    ("/api/v1/departments/{department_id}", "delete"): ("删除部门", "V3.0", "永久删除没有用户、项目或邀请码引用的部门。"),
     ("/api/v1/invitations", "post"): ("生成邀请码", "V1.1", "为指定部门生成邀请码。"),
     ("/api/v1/invitations", "get"): ("查询邀请码列表", "V1.1", "分页查询邀请码。"),
     ("/api/v1/invitations/{invitation_id}/disable", "post"): ("停用邀请码", "V1.1", "停用尚未使用的邀请码。"),
+    ("/api/v1/users", "get"): ("查询用户选择列表", "V3.0", "供项目成员和负责人选择器按姓名或部门查询已注册用户。"),
     ("/api/v1/interviews", "post"): ("创建访谈会话", "V2.0", "保存原始需求并调用 Dify 访谈 Workflow 生成第一轮追问。"),
     ("/api/v1/interviews/attachments", "post"): ("上传访谈图片", "V2.0", "上传 PNG、JPG/JPEG 或 WEBP 图片，返回供创建或回答接口关联的附件 ID。"),
     ("/api/v1/interviews/attachments/{attachment_id}/content", "get"): ("预览访谈图片", "V2.0", "按附件 ID 返回原始图片内容，用于访谈工作台预览。"),
@@ -50,11 +57,13 @@ OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
 
 TAG_META = {
     "health": "服务状态",
+    "auth": "身份注册、登录与会话（V3.0）",
     "projects": "项目管理（V1.1）",
     "requirements": "需求管理（V1.1/V2.0）",
     "interviews": "对话式需求访谈（V2.0）",
     "departments": "部门管理（V1.1）",
     "invitations": "邀请码管理（V1.1）",
+    "users": "内部用户选择（V3.0）",
 }
 
 
@@ -63,10 +72,10 @@ def build_schema() -> dict[str, Any]:
     schema["info"].update(
         {
             "title": "极简 AI 团队需求管理智能体 API",
-            "version": "2.0.0",
+            "version": "3.0.0",
             "description": (
-                "供 Apifox 导入和本地联调。V1.1 接口保持兼容，V2.0 新增对话式需求访谈。"
-                "当前未实现登录鉴权；Dify API Key 仅由后端环境变量持有。"
+                "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、"
+                "HttpOnly Cookie 会话、CSRF 和管理员权限；Dify API Key 仍仅由后端环境变量持有。"
             ),
         }
     )

@@ -27,6 +27,16 @@ class ConflictError(AppError):
         super().__init__(message, code="CONFLICT", status_code=409)
 
 
+class AuthenticationError(AppError):
+    def __init__(self, message: str = "请先登录", *, code: str = "AUTH_SESSION_EXPIRED") -> None:
+        super().__init__(message, code=code, status_code=401)
+
+
+class PermissionDeniedError(AppError):
+    def __init__(self, message: str = "没有操作权限") -> None:
+        super().__init__(message, code="PERMISSION_DENIED", status_code=403)
+
+
 class InvalidImageError(AppError):
     def __init__(
         self,

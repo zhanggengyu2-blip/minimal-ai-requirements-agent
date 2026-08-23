@@ -19,7 +19,6 @@ from app.schemas.requirement import RequirementRead
 class InterviewCreate(ORMModel):
     project_id: str = Field(min_length=32, max_length=32)
     raw_content: str = Field(default="", max_length=10000)
-    created_by: str | None = Field(default=None, max_length=32)
     client_message_id: str = Field(min_length=1, max_length=64)
     attachment_ids: list[str] = Field(default_factory=list, max_length=5)
 

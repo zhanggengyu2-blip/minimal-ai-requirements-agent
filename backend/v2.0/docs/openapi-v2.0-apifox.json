@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "极简 AI 团队需求管理智能体 API",
-    "version": "2.0.0",
-    "description": "供 Apifox 导入和本地联调。V1.1 接口保持兼容，V2.0 新增对话式需求访谈。当前未实现登录鉴权；Dify API Key 仅由后端环境变量持有。"
+    "version": "3.0.0",
+    "description": "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、HttpOnly Cookie 会话、CSRF 和管理员权限；Dify API Key 仍仅由后端环境变量持有。"
   },
   "paths": {
     "/api/v1/health": {
@@ -29,6 +29,199 @@
         "x-api-version": "V1.1"
       }
     },
+    "/api/v1/auth/departments": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "【V3.0】 查询登录部门",
+        "operationId": "list_login_departments_api_v1_auth_departments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_DepartmentOption__"
+                }
+              }
+            }
+          }
+        },
+        "description": "公开返回登录和首次注册可选择的部门 ID 与名称。",
+        "x-api-version": "V3.0"
+      }
+    },
+    "/api/v1/auth/registrations": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "【V3.0】 首次注册",
+        "operationId": "register_api_v1_auth_registrations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AuthSessionRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "使用部门、姓名和一次性邀请码创建普通成员并建立登录会话。",
+        "x-api-version": "V3.0"
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "【V3.0】 统一密码登录",
+        "operationId": "login_api_v1_auth_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AuthSessionRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "使用部门、姓名和公司统一密码建立服务端会话。",
+        "x-api-version": "V3.0"
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "【V3.0】 查询当前用户",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_AuthSessionRead_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "description": "返回当前用户、角色和写请求所需的 CSRF 令牌。",
+        "x-api-version": "V3.0"
+      }
+    },
+    "/api/v1/auth/session": {
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "【V3.0】 退出登录",
+        "operationId": "logout_api_v1_auth_session_delete",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_dict_str__bool__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "撤销当前服务端会话并清除 HttpOnly Cookie。",
+        "x-api-version": "V3.0"
+      }
+    },
     "/api/v1/projects": {
       "post": {
         "tags": [
@@ -36,6 +229,29 @@
         ],
         "summary": "【V1.1】 创建项目",
         "operationId": "create_project_api_v1_projects_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -77,6 +293,11 @@
         ],
         "summary": "【V1.1】 查询项目列表",
         "operationId": "list_projects_api_v1_projects_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "page",
@@ -116,6 +337,22 @@
               ],
               "title": "Status"
             }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
           }
         ],
         "responses": {
@@ -151,6 +388,29 @@
         ],
         "summary": "【V1.1】 直接创建并分析需求",
         "operationId": "create_requirement_api_v1_requirements_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -192,6 +452,11 @@
         ],
         "summary": "【V1.1】 查询需求列表",
         "operationId": "list_requirements_api_v1_requirements_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "project_id",
@@ -314,6 +579,22 @@
               ],
               "title": "Is Fake"
             }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
           }
         ],
         "responses": {
@@ -349,6 +630,11 @@
         ],
         "summary": "【V1.1】 查询需求详情",
         "operationId": "get_requirement_api_v1_requirements__requirement_id__get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "requirement_id",
@@ -357,6 +643,22 @@
             "schema": {
               "type": "string",
               "title": "Requirement Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -393,6 +695,11 @@
         ],
         "summary": "【V2.0】 查询需求关联访谈",
         "operationId": "get_requirement_interview_api_v1_requirements__requirement_id__interview_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "requirement_id",
@@ -401,6 +708,22 @@
             "schema": {
               "type": "string",
               "title": "Requirement Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -437,15 +760,38 @@
         ],
         "summary": "【V1.1】 批量分析需求（预留）",
         "operationId": "reserve_batch_analysis_api_v1_requirements_batch_analyze_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/BatchAnalyzeRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "202": {
@@ -480,15 +826,38 @@
         ],
         "summary": "【V2.0】 创建访谈会话",
         "operationId": "create_interview_api_v1_interviews_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/InterviewCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -523,24 +892,12 @@
         ],
         "summary": "【V2.0】 查询未完成访谈",
         "operationId": "list_interview_drafts_api_v1_interviews_drafts_get",
-        "parameters": [
+        "security": [
           {
-            "name": "created_by",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "maxLength": 32
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Created By"
-            }
-          },
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
           {
             "name": "limit",
             "in": "query",
@@ -551,6 +908,22 @@
               "minimum": 1,
               "default": 20,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -587,15 +960,38 @@
         ],
         "summary": "【V2.0】 上传访谈图片",
         "operationId": "upload_interview_attachment_api_v1_interviews_attachments_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_interview_attachment_api_v1_interviews_attachments_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -630,6 +1026,11 @@
         ],
         "summary": "【V2.0】 预览访谈图片",
         "operationId": "preview_interview_attachment_api_v1_interviews_attachments__attachment_id__content_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "attachment_id",
@@ -638,6 +1039,22 @@
             "schema": {
               "type": "string",
               "title": "Attachment Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -667,6 +1084,11 @@
         ],
         "summary": "【V2.0】 查询访谈详情",
         "operationId": "get_interview_api_v1_interviews__session_id__get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -675,6 +1097,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -711,6 +1149,11 @@
         ],
         "summary": "【V2.0】 回答访谈问题",
         "operationId": "answer_interview_api_v1_interviews__session_id__messages_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -719,6 +1162,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -765,6 +1224,11 @@
         ],
         "summary": "【V2.0】 跳过当前问题",
         "operationId": "skip_interview_question_api_v1_interviews__session_id__actions_skip_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -773,6 +1237,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -819,6 +1299,11 @@
         ],
         "summary": "【V2.0】 标记为不清楚",
         "operationId": "mark_interview_unknown_api_v1_interviews__session_id__actions_unknown_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -827,6 +1312,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -873,6 +1374,11 @@
         ],
         "summary": "【V2.0】 按当前信息整理",
         "operationId": "summarize_interview_api_v1_interviews__session_id__actions_summarize_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -881,6 +1387,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -917,6 +1439,11 @@
         ],
         "summary": "【V2.0】 编辑需求总结",
         "operationId": "update_interview_summary_api_v1_interviews__session_id__summary_patch",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -925,6 +1452,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -971,6 +1514,11 @@
         ],
         "summary": "【V2.0】 确认并创建需求",
         "operationId": "confirm_interview_api_v1_interviews__session_id__confirm_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -979,6 +1527,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -1025,6 +1589,11 @@
         ],
         "summary": "【V2.0】 放弃访谈",
         "operationId": "abandon_interview_api_v1_interviews__session_id__abandon_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "session_id",
@@ -1033,6 +1602,22 @@
             "schema": {
               "type": "string",
               "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -1069,6 +1654,29 @@
         ],
         "summary": "【V1.1】 创建部门",
         "operationId": "create_department_api_v1_departments_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1110,6 +1718,11 @@
         ],
         "summary": "【V1.1】 查询部门列表",
         "operationId": "list_departments_api_v1_departments_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "page",
@@ -1152,19 +1765,19 @@
             }
           },
           {
-            "name": "status",
-            "in": "query",
+            "name": "X-CSRF-Token",
+            "in": "header",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/DepartmentStatus"
+                  "type": "string"
                 },
                 {
                   "type": "null"
                 }
               ],
-              "title": "Status"
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -1199,8 +1812,13 @@
         "tags": [
           "departments"
         ],
-        "summary": "【V1.1】 更新部门",
+        "summary": "【V3.0】 更新部门",
         "operationId": "update_department_api_v1_departments__department_id__patch",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "department_id",
@@ -1209,6 +1827,22 @@
             "schema": {
               "type": "string",
               "title": "Department Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -1244,8 +1878,71 @@
             }
           }
         },
-        "description": "修改部门名称或状态。",
-        "x-api-version": "V1.1"
+        "description": "修改部门名称。",
+        "x-api-version": "V3.0"
+      },
+      "delete": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "【V3.0】 删除部门",
+        "operationId": "delete_department_api_v1_departments__department_id__delete",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_dict_str__bool__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "永久删除没有用户、项目或邀请码引用的部门。",
+        "x-api-version": "V3.0"
       }
     },
     "/api/v1/invitations": {
@@ -1255,6 +1952,29 @@
         ],
         "summary": "【V1.1】 生成邀请码",
         "operationId": "create_invitation_api_v1_invitations_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1296,6 +2016,11 @@
         ],
         "summary": "【V1.1】 查询邀请码列表",
         "operationId": "list_invitations_api_v1_invitations_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "page",
@@ -1369,6 +2094,22 @@
               ],
               "title": "Status"
             }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
           }
         ],
         "responses": {
@@ -1404,6 +2145,11 @@
         ],
         "summary": "【V1.1】 停用邀请码",
         "operationId": "disable_invitation_api_v1_invitations__invitation_id__disable_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
         "parameters": [
           {
             "name": "invitation_id",
@@ -1412,6 +2158,22 @@
             "schema": {
               "type": "string",
               "title": "Invitation Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
             }
           }
         ],
@@ -1440,6 +2202,119 @@
         "description": "停用尚未使用的邀请码。",
         "x-api-version": "V1.1"
       }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "【V3.0】 查询用户选择列表",
+        "operationId": "list_users_api_v1_users_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 100,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_PageData_UserRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "供项目成员和负责人选择器按姓名或部门查询已注册用户。",
+        "x-api-version": "V3.0"
+      }
     }
   },
   "components": {
@@ -1453,6 +2328,39 @@
           "FAILED"
         ],
         "title": "AnalysisStatus"
+      },
+      "ApiResponse_AuthSessionRead_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "OK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AuthSessionRead"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[AuthSessionRead]"
       },
       "ApiResponse_BatchAnalyzeAccepted_": {
         "properties": {
@@ -1784,6 +2692,39 @@
         ],
         "title": "ApiResponse[PageData[RequirementRead]]"
       },
+      "ApiResponse_PageData_UserRead__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "OK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageData_UserRead_"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[PageData[UserRead]]"
+      },
       "ApiResponse_ProjectRead_": {
         "properties": {
           "code": {
@@ -1850,6 +2791,43 @@
         ],
         "title": "ApiResponse[RequirementRead]"
       },
+      "ApiResponse_dict_str__bool__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "OK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object",
+            "title": "Data"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[dict[str, bool]]"
+      },
       "ApiResponse_dict_str__str__": {
         "properties": {
           "code": {
@@ -1887,6 +2865,43 @@
         ],
         "title": "ApiResponse[dict[str, str]]"
       },
+      "ApiResponse_list_DepartmentOption__": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "OK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentOption"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[list[DepartmentOption]]"
+      },
       "ApiResponse_list_InterviewDraftRead__": {
         "properties": {
           "code": {
@@ -1923,6 +2938,23 @@
           "data"
         ],
         "title": "ApiResponse[list[InterviewDraftRead]]"
+      },
+      "AuthSessionRead": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/CurrentUserRead"
+          },
+          "csrf_token": {
+            "type": "string",
+            "title": "Csrf Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user",
+          "csrf_token"
+        ],
+        "title": "AuthSessionRead"
       },
       "BatchAnalyzeAccepted": {
         "properties": {
@@ -1976,18 +3008,6 @@
             "type": "string",
             "contentMediaType": "application/octet-stream",
             "title": "File"
-          },
-          "uploaded_by": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 32
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Uploaded By"
           }
         },
         "type": "object",
@@ -1995,6 +3015,44 @@
           "file"
         ],
         "title": "Body_upload_interview_attachment_api_v1_interviews_attachments_post"
+      },
+      "CurrentUserRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "created_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "department_name",
+          "name",
+          "role",
+          "created_time"
+        ],
+        "title": "CurrentUserRead"
       },
       "DepartmentCreate": {
         "properties": {
@@ -2011,6 +3069,24 @@
         ],
         "title": "DepartmentCreate"
       },
+      "DepartmentOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DepartmentOption"
+      },
       "DepartmentRead": {
         "properties": {
           "id": {
@@ -2021,9 +3097,6 @@
             "type": "string",
             "title": "Name"
           },
-          "status": {
-            "$ref": "#/components/schemas/DepartmentStatus"
-          },
           "user_count": {
             "type": "integer",
             "title": "User Count",
@@ -2032,6 +3105,11 @@
           "project_count": {
             "type": "integer",
             "title": "Project Count",
+            "default": 0
+          },
+          "invitation_count": {
+            "type": "integer",
+            "title": "Invitation Count",
             "default": 0
           },
           "created_time": {
@@ -2049,47 +3127,24 @@
         "required": [
           "id",
           "name",
-          "status",
           "created_time",
           "updated_time"
         ],
         "title": "DepartmentRead"
       },
-      "DepartmentStatus": {
-        "type": "string",
-        "enum": [
-          "ACTIVE",
-          "DISABLED"
-        ],
-        "title": "DepartmentStatus"
-      },
       "DepartmentUpdate": {
         "properties": {
           "name": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Name"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/DepartmentStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
           }
         },
         "type": "object",
+        "required": [
+          "name"
+        ],
         "title": "DepartmentUpdate"
       },
       "DifyInterviewField": {
@@ -2336,18 +3391,6 @@
             "maxLength": 10000,
             "title": "Raw Content",
             "default": ""
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 32
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
           },
           "client_message_id": {
             "type": "string",
@@ -2853,7 +3896,7 @@
             "minLength": 32,
             "title": "Department Id"
           },
-          "user_name": {
+          "intended_user_name": {
             "anyOf": [
               {
                 "type": "string",
@@ -2863,7 +3906,7 @@
                 "type": "null"
               }
             ],
-            "title": "User Name"
+            "title": "Intended User Name"
           }
         },
         "type": "object",
@@ -2890,7 +3933,7 @@
             "type": "string",
             "title": "Department Name"
           },
-          "user_name": {
+          "intended_user_name": {
             "anyOf": [
               {
                 "type": "string"
@@ -2899,10 +3942,43 @@
                 "type": "null"
               }
             ],
-            "title": "User Name"
+            "title": "Intended User Name"
           },
           "status": {
             "$ref": "#/components/schemas/InvitationStatus"
+          },
+          "used_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used By User Id"
+          },
+          "used_by_user_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Used By User Name"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
           },
           "created_time": {
             "type": "string",
@@ -2920,6 +3996,18 @@
               }
             ],
             "title": "Used Time"
+          },
+          "disabled_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled Time"
           }
         },
         "type": "object",
@@ -2928,10 +4016,14 @@
           "code",
           "department_id",
           "department_name",
-          "user_name",
+          "intended_user_name",
           "status",
+          "used_by_user_id",
+          "used_by_user_name",
+          "created_by",
           "created_time",
-          "used_time"
+          "used_time",
+          "disabled_time"
         ],
         "title": "InvitationRead"
       },
@@ -3080,6 +4172,40 @@
         ],
         "title": "PageData[RequirementRead]"
       },
+      "PageData_UserRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserRead"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PageData[UserRead]"
+      },
       "ProjectCreate": {
         "properties": {
           "name": {
@@ -3111,18 +4237,6 @@
               }
             ],
             "title": "Department Id"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 32
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
           }
         },
         "type": "object",
@@ -3222,6 +4336,35 @@
         ],
         "title": "ProjectStatus"
       },
+      "RegistrationRequest": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 32,
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "invitation_code": {
+            "type": "string",
+            "format": "password",
+            "title": "Invitation Code",
+            "writeOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "name",
+          "invitation_code"
+        ],
+        "title": "RegistrationRequest"
+      },
       "RequirementCreate": {
         "properties": {
           "project_id": {
@@ -3235,18 +4378,6 @@
             "maxLength": 10000,
             "minLength": 1,
             "title": "Raw Content"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 32
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
           }
         },
         "type": "object",
@@ -3519,6 +4650,35 @@
         ],
         "title": "RequirementType"
       },
+      "SessionCreateRequest": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 32,
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "shared_password": {
+            "type": "string",
+            "format": "password",
+            "title": "Shared Password",
+            "writeOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "name",
+          "shared_password"
+        ],
+        "title": "SessionCreateRequest"
+      },
       "SourceChannel": {
         "type": "string",
         "enum": [
@@ -3531,6 +4691,52 @@
           "OTHER"
         ],
         "title": "SourceChannel"
+      },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "department_name": {
+            "type": "string",
+            "title": "Department Name"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "created_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "department_name",
+          "name",
+          "role",
+          "created_time"
+        ],
+        "title": "UserRead"
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "ADMIN",
+          "MEMBER"
+        ],
+        "title": "UserRole"
       },
       "ValidationError": {
         "properties": {
@@ -3572,6 +4778,14 @@
         ],
         "title": "ValidationError"
       }
+    },
+    "securitySchemes": {
+      "SessionCookie": {
+        "type": "apiKey",
+        "description": "登录成功后由服务端设置的 HttpOnly 会话 Cookie",
+        "in": "cookie",
+        "name": "team_session"
+      }
     }
   },
   "servers": [
@@ -3584,6 +4798,10 @@
     {
       "name": "health",
       "description": "服务状态"
+    },
+    {
+      "name": "auth",
+      "description": "身份注册、登录与会话（V3.0）"
     },
     {
       "name": "projects",
@@ -3604,6 +4822,10 @@
     {
       "name": "invitations",
       "description": "邀请码管理（V1.1）"
+    },
+    {
+      "name": "users",
+      "description": "内部用户选择（V3.0）"
     }
   ]
 }

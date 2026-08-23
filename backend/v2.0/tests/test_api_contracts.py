@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
-from app.db.models import Department, DepartmentStatus, Project, ProjectStatus
+from app.db.models import Department, Project, ProjectStatus
 from app.main import app
 from app.schemas.dify import DifyAnalysisResult
 from app.services.dify_service import DifyWorkflowResult
@@ -144,19 +144,22 @@ def test_batch_analysis_endpoint_is_explicitly_reserved():
     assert duplicate.status_code == 422
 
 
-def test_disabled_department_cannot_create_invitation(db_session):
-    department = Department(name="停用部门", status=DepartmentStatus.DISABLED)
+def test_department_with_invitation_cannot_be_deleted(db_session):
+    department = Department(name="被引用部门")
     db_session.add(department)
     db_session.commit()
 
     with TestClient(app) as client:
         response = client.post(
             "/api/v1/invitations",
-            json={"department_id": department.id, "user_name": "测试用户"},
+            json={"department_id": department.id, "intended_user_name": "测试用户"},
         )
+        assert response.status_code == 201
+        response = client.delete(f"/api/v1/departments/{department.id}")
 
     assert response.status_code == 409
-    assert response.json()["code"] == "CONFLICT"
+    assert response.json()["code"] == "DEPARTMENT_IN_USE"
+    assert response.json()["details"]["invitation_count"] == 1
 
 
 def test_archived_project_cannot_start_interview(db_session):

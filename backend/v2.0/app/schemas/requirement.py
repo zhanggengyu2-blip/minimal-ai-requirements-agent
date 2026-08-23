@@ -9,7 +9,6 @@ from app.schemas.common import ORMModel
 class RequirementCreate(ORMModel):
     project_id: str = Field(min_length=32, max_length=32)
     raw_content: str = Field(min_length=1, max_length=10000)
-    created_by: str | None = Field(default=None, max_length=32)
 
     @field_validator("raw_content")
     @classmethod

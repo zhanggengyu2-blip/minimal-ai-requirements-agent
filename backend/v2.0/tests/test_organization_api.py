@@ -11,7 +11,7 @@ def test_department_and_invitation_management():
         )
         assert create_department.status_code == 201
         department = create_department.json()["data"]
-        assert department["status"] == "ACTIVE"
+        assert "status" not in department
 
         update_department = client.patch(
             f"/api/v1/departments/{department['id']}",
@@ -22,7 +22,7 @@ def test_department_and_invitation_management():
 
         invitation_response = client.post(
             "/api/v1/invitations",
-            json={"department_id": department["id"], "user_name": "测试用户"},
+            json={"department_id": department["id"], "intended_user_name": "测试用户"},
         )
         assert invitation_response.status_code == 201
         invitation = invitation_response.json()["data"]

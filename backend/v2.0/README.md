@@ -27,6 +27,7 @@ python -m pip install -e '.[dev]'
 cp .env.example .env
 python -m alembic upgrade head
 python -m app.db.seed
+python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
 python -m uvicorn app.main:app --reload
 ```
 
@@ -58,6 +59,43 @@ python -m app.db.seed
 ```
 
 创建后续迁移时使用 `python -m alembic revision --autogenerate -m "变更说明"`，并在提交前人工审查升级和降级内容。不要在应用启动代码中恢复 `create_all()` 或手写 `ALTER TABLE`。
+
+## 身份与管理员初始化
+
+首次运行前必须在 `.env` 配置：
+
+```dotenv
+SHARED_PASSWORD=公司统一密码
+AUTH_HMAC_KEY=至少32位随机字符串
+INVITATION_ENCRYPTION_KEY=另一条至少32位随机字符串
+SESSION_COOKIE_SECURE=false
+```
+
+- `SHARED_PASSWORD` 只用于注册后的统一登录，不写入数据库；
+- `AUTH_HMAC_KEY` 用于邀请码和会话令牌摘要；
+- `INVITATION_ENCRYPTION_KEY` 用于管理员列表中的邀请码解密展示；
+- 正式 HTTPS 环境必须将 `SESSION_COOKIE_SECURE` 改为 `true`；
+- 三个密钥或密码不得提交到 Git，也不得写入日志、URL 或前端持久化存储。
+
+数据库迁移和默认部门 seed 完成后，执行一次：
+
+```bash
+python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
+```
+
+该命令只允许在系统不存在管理员时执行。管理员随后使用“部门＋姓名＋公司统一密码”登录，并通过管理接口生成普通成员首次注册邀请码。
+
+身份接口：
+
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/auth/departments` | 公开的登录部门选项 |
+| POST | `/api/v1/auth/registrations` | 部门、姓名、邀请码首次注册 |
+| POST | `/api/v1/auth/sessions` | 部门、姓名、统一密码登录 |
+| GET | `/api/v1/auth/me` | 当前用户和 CSRF 令牌 |
+| DELETE | `/api/v1/auth/session` | 撤销当前会话并退出 |
+
+登录 Cookie 使用 `HttpOnly` 和 `SameSite=Lax`。除登录、注册和健康检查外，所有业务接口都要求登录；所有写请求还必须使用 `X-CSRF-Token` 请求头携带 `/auth/me` 返回的 CSRF 令牌。
 
 ## Dify 配置
 

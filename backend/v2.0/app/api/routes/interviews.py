@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -31,7 +31,7 @@ async def create_interview(
     payload: InterviewCreate, request: Request, db: DbSession
 ) -> ApiResponse[InterviewSessionRead]:
     service = InterviewService(db)
-    session = await service.create(payload)
+    session = await service.create(payload, created_by=request.state.current_user.id)
     return ApiResponse(
         message="访谈会话已创建",
         data=service.to_read(session),
@@ -43,10 +43,11 @@ async def create_interview(
 def list_interview_drafts(
     request: Request,
     db: DbSession,
-    created_by: Annotated[str | None, Query(max_length=32)] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> ApiResponse[list[InterviewDraftRead]]:
-    sessions = InterviewService(db).drafts(created_by=created_by, limit=limit)
+    sessions = InterviewService(db).drafts(
+        created_by=request.state.current_user.id, limit=limit
+    )
     return ApiResponse(
         data=[InterviewDraftRead.model_validate(item) for item in sessions],
         request_id=request.state.request_id,
@@ -62,11 +63,10 @@ async def upload_interview_attachment(
     request: Request,
     db: DbSession,
     file: UploadFile = File(...),
-    uploaded_by: str | None = Form(default=None, max_length=32),
 ) -> ApiResponse[InterviewAttachmentRead]:
     attachment = await InterviewAttachmentService(db).upload(
         file,
-        uploaded_by=uploaded_by,
+        uploaded_by=request.state.current_user.id,
     )
     return ApiResponse(
         message="图片上传成功",

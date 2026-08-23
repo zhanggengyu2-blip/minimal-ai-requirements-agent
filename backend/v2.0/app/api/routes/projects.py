@@ -16,7 +16,7 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 @router.post("", response_model=ApiResponse[ProjectRead], status_code=status.HTTP_201_CREATED)
 def create_project(payload: ProjectCreate, request: Request, db: DbSession) -> ApiResponse[ProjectRead]:
-    project = ProjectService(db).create(payload)
+    project = ProjectService(db).create(payload, created_by=request.state.current_user.id)
     return ApiResponse(message="项目创建成功", data=project, request_id=request.state.request_id)
 
 
@@ -35,4 +35,3 @@ def list_projects(
         data=PageData(items=items, total=total, page=page, page_size=page_size),
         request_id=request.state.request_id,
     )
-

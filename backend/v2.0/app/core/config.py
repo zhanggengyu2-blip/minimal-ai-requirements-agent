@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./data/requirements.db"
 
+    shared_password: str = ""
+    auth_hmac_key: str = ""
+    invitation_encryption_key: str = ""
+    session_cookie_name: str = "team_session"
+    session_cookie_secure: bool = False
+    session_idle_days: int = Field(default=7, ge=1, le=30)
+    session_absolute_days: int = Field(default=30, ge=1, le=365)
+    csrf_header_name: str = "X-CSRF-Token"
+    csrf_enabled: bool = True
+
     dify_base_url: str = "http://127.0.0.1/v1"
     dify_api_key: str = ""
     dify_workflow_path: str = "/workflows/run"

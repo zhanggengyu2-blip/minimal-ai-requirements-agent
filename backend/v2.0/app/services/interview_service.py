@@ -116,7 +116,7 @@ class InterviewService:
         self.requirements = requirement_service or RequirementService(db)
         self.settings = get_settings()
 
-    async def create(self, payload: InterviewCreate) -> InterviewSession:
+    async def create(self, payload: InterviewCreate, *, created_by: str) -> InterviewSession:
         existing = self.db.scalar(
             select(InterviewSession).where(
                 InterviewSession.source_channel == SourceChannel.MANAGEMENT_WEB,
@@ -134,9 +134,9 @@ class InterviewService:
 
         session = InterviewSession(
             project_id=project.id,
-            created_by=payload.created_by,
+            created_by=created_by,
             source_channel=SourceChannel.MANAGEMENT_WEB,
-            source_user_id=payload.created_by,
+            source_user_id=created_by,
             source_message_id=payload.client_message_id,
             project_resolve_mode=ProjectResolveMode.USER_SELECTED,
             status=InterviewStatus.DRAFT,
@@ -161,7 +161,7 @@ class InterviewService:
             payload.attachment_ids,
             session=session,
             message=initial,
-            uploaded_by=payload.created_by,
+            uploaded_by=created_by,
         )
         self.db.commit()
         self.db.refresh(session)

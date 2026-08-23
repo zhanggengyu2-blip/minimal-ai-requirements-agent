@@ -11,8 +11,8 @@ class ProjectService:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def create(self, payload: ProjectCreate) -> ProjectRead:
-        project = Project(**payload.model_dump())
+    def create(self, payload: ProjectCreate, *, created_by: str) -> ProjectRead:
+        project = Project(**payload.model_dump(), created_by=created_by)
         self.db.add(project)
         try:
             self.db.commit()
@@ -44,4 +44,3 @@ class ProjectService:
             item.requirement_count = count
             items.append(item)
         return items, total
-

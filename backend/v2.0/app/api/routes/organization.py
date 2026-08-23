@@ -3,7 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 
-from app.db.models import DepartmentStatus, InvitationStatus
+from app.api.deps import AdminUser, require_admin, require_authenticated_request
+from app.db.models import InvitationStatus
 from app.db.session import get_db
 from app.schemas.common import ApiResponse, PageData
 from app.schemas.organization import (
@@ -12,12 +13,14 @@ from app.schemas.organization import (
     DepartmentUpdate,
     InvitationCreate,
     InvitationRead,
+    UserRead,
 )
-from app.services.organization_service import DepartmentService, InvitationService
+from app.services.organization_service import DepartmentService, InvitationService, UserService
 
 
-departments_router = APIRouter()
-invitations_router = APIRouter()
+departments_router = APIRouter(dependencies=[Depends(require_admin)])
+invitations_router = APIRouter(dependencies=[Depends(require_admin)])
+users_router = APIRouter(dependencies=[Depends(require_authenticated_request)])
 DbSession = Annotated[Session, Depends(get_db)]
 
 
@@ -36,11 +39,8 @@ def list_departments(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     keyword: Annotated[str | None, Query(max_length=100)] = None,
-    department_status: Annotated[DepartmentStatus | None, Query(alias="status")] = None,
 ) -> ApiResponse[PageData[DepartmentRead]]:
-    items, total = DepartmentService(db).list(
-        page=page, page_size=page_size, keyword=keyword, status=department_status
-    )
+    items, total = DepartmentService(db).list(page=page, page_size=page_size, keyword=keyword)
     return ApiResponse(
         data=PageData(items=items, total=total, page=page, page_size=page_size),
         request_id=request.state.request_id,
@@ -58,11 +58,24 @@ def update_department(
     return ApiResponse(message="部门更新成功", data=item, request_id=request.state.request_id)
 
 
+@departments_router.delete("/{department_id}", response_model=ApiResponse[dict[str, bool]])
+def delete_department(
+    department_id: str, request: Request, db: DbSession
+) -> ApiResponse[dict[str, bool]]:
+    DepartmentService(db).delete(department_id)
+    return ApiResponse(
+        message="部门已删除", data={"deleted": True}, request_id=request.state.request_id
+    )
+
+
 @invitations_router.post("", response_model=ApiResponse[InvitationRead], status_code=status.HTTP_201_CREATED)
 def create_invitation(
-    payload: InvitationCreate, request: Request, db: DbSession
+    payload: InvitationCreate,
+    request: Request,
+    db: DbSession,
+    admin: AdminUser,
 ) -> ApiResponse[InvitationRead]:
-    item = InvitationService(db).create(payload)
+    item = InvitationService(db).create(payload, actor_id=admin.id)
     return ApiResponse(message="邀请码生成成功", data=item, request_id=request.state.request_id)
 
 
@@ -95,3 +108,21 @@ def disable_invitation(
 ) -> ApiResponse[InvitationRead]:
     item = InvitationService(db).disable(invitation_id)
     return ApiResponse(message="邀请码已停用", data=item, request_id=request.state.request_id)
+
+
+@users_router.get("", response_model=ApiResponse[PageData[UserRead]])
+def list_users(
+    request: Request,
+    db: DbSession,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 100,
+    keyword: Annotated[str | None, Query(max_length=100)] = None,
+    department_id: Annotated[str | None, Query(max_length=32)] = None,
+) -> ApiResponse[PageData[UserRead]]:
+    items, total = UserService(db).list(
+        page=page, page_size=page_size, keyword=keyword, department_id=department_id
+    )
+    return ApiResponse(
+        data=PageData(items=items, total=total, page=page, page_size=page_size),
+        request_id=request.state.request_id,
+    )
