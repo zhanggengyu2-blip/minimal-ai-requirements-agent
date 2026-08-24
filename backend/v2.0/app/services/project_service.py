@@ -1,4 +1,4 @@
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import case, delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -8,11 +8,13 @@ from app.db.models import (
     Project,
     ProjectMember,
     ProjectStatus,
+    ProjectVersion,
     Requirement,
     Task,
     TaskLane,
     UserAccount,
     UserRole,
+    VersionParticipant,
     utc_now,
 )
 from app.schemas.project import (
@@ -242,6 +244,30 @@ class ProjectService:
                 code="PROJECT_MEMBER_HAS_TASKS",
                 details={"task_counts": blocked},
             )
+        if removed_ids:
+            orphaned_version_ids = list(
+                self.db.scalars(
+                    select(VersionParticipant.version_id)
+                    .join(ProjectVersion, ProjectVersion.id == VersionParticipant.version_id)
+                    .where(ProjectVersion.project_id == project.id)
+                    .group_by(VersionParticipant.version_id)
+                    .having(
+                        func.sum(
+                            case(
+                                (VersionParticipant.user_id.not_in(removed_ids), 1),
+                                else_=0,
+                            )
+                        )
+                        == 0
+                    )
+                )
+            )
+            if orphaned_version_ids:
+                raise ConflictError(
+                    "该成员是版本的最后一名参与人员，请先调整版本参与人员",
+                    code="PROJECT_MEMBER_LAST_VERSION_PARTICIPANT",
+                    details={"version_ids": orphaned_version_ids},
+                )
 
         revision_result = self.db.execute(
             update(Project)
@@ -267,6 +293,33 @@ class ProjectService:
             )
 
         if removed_ids:
+            affected_version_ids = select(VersionParticipant.version_id).where(
+                VersionParticipant.user_id.in_(removed_ids),
+                VersionParticipant.version_id.in_(
+                    select(ProjectVersion.id).where(
+                        ProjectVersion.project_id == project.id
+                    )
+                ),
+            )
+            self.db.execute(
+                update(ProjectVersion)
+                .where(ProjectVersion.id.in_(affected_version_ids))
+                .values(
+                    revision=ProjectVersion.revision + 1,
+                    updated_by=actor.id,
+                    updated_time=utc_now(),
+                )
+            )
+            self.db.execute(
+                delete(VersionParticipant).where(
+                    VersionParticipant.user_id.in_(removed_ids),
+                    VersionParticipant.version_id.in_(
+                        select(ProjectVersion.id).where(
+                            ProjectVersion.project_id == project.id
+                        )
+                    ),
+                )
+            )
             self.db.execute(
                 delete(TaskLane).where(
                     TaskLane.project_id == project.id,

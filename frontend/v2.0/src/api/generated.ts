@@ -272,6 +272,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询版本列表
+         * @description 按创建时间倒序返回当前项目中的全部实际版本和任务统计。
+         */
+        get: operations["list_versions_api_v1_projects__project_id__versions_get"];
+        put?: never;
+        /**
+         * 【V3.0】 创建版本
+         * @description 创建版本及至少一名初始参与人员，参与人员必须是当前项目成员。
+         */
+        post: operations["create_version_api_v1_projects__project_id__versions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/versions/{version_id}/completion-impact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询版本完成影响
+         * @description 返回当前版本全部任务数和未完成任务数，供完成确认使用。
+         */
+        get: operations["get_version_completion_impact_api_v1_projects__project_id__versions__version_id__completion_impact_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/versions/{version_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V3.0】 查询版本详情
+         * @description 返回版本信息、按项目成员顺序排列的参与人员及任务统计。
+         */
+        get: operations["get_version_api_v1_projects__project_id__versions__version_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * 【V3.0】 删除版本
+         * @description 使用版本修订号删除版本并解除任务关联，不删除任何任务。
+         */
+        delete: operations["delete_version_api_v1_projects__project_id__versions__version_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * 【V3.0】 更新版本
+         * @description 使用版本修订号修改名称、日期、状态或完整参与人员集合。
+         */
+        patch: operations["update_version_api_v1_projects__project_id__versions__version_id__patch"];
+        trace?: never;
+    };
     "/api/v1/requirements": {
         parameters: {
             query?: never;
@@ -1019,6 +1091,70 @@ export interface components {
              */
             message: string;
             data: components["schemas"]["TaskRead"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[VersionCompletionImpact] */
+        ApiResponse_VersionCompletionImpact_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["VersionCompletionImpact"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[VersionDeleteResult] */
+        ApiResponse_VersionDeleteResult_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["VersionDeleteResult"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[VersionList] */
+        ApiResponse_VersionList_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["VersionList"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[VersionRead] */
+        ApiResponse_VersionRead_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["VersionRead"];
             /** Request Id */
             request_id?: string | null;
         };
@@ -1891,6 +2027,183 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VersionCompletionImpact */
+        VersionCompletionImpact: {
+            /** Version Id */
+            version_id: string;
+            /** Task Count */
+            task_count: number;
+            /** Unfinished Task Count */
+            unfinished_task_count: number;
+        };
+        /** VersionCreate */
+        VersionCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Participant Ids */
+            participant_ids: string[];
+        };
+        /** VersionDeleteResult */
+        VersionDeleteResult: {
+            /** Unlinked Task Count */
+            unlinked_task_count: number;
+            /** Next Version Id */
+            next_version_id: string | null;
+        };
+        /** VersionList */
+        VersionList: {
+            /** Items */
+            items: components["schemas"]["VersionSummaryRead"][];
+            /** Total */
+            total: number;
+        };
+        /** VersionParticipantRead */
+        VersionParticipantRead: {
+            /** User Id */
+            user_id: string;
+            /** Name */
+            name: string;
+            /** Department Id */
+            department_id: string;
+            /** Department Name */
+            department_name: string;
+            role: components["schemas"]["UserRole"];
+            /** Sort Order */
+            sort_order: number;
+            /**
+             * Task Count
+             * @default 0
+             */
+            task_count: number;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+        };
+        /** VersionRead */
+        VersionRead: {
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            status: components["schemas"]["VersionStatus"];
+            /** Revision */
+            revision: number;
+            /**
+             * Task Count
+             * @default 0
+             */
+            task_count: number;
+            /**
+             * Unfinished Task Count
+             * @default 0
+             */
+            unfinished_task_count: number;
+            /** Created By */
+            created_by: string;
+            /** Updated By */
+            updated_by: string;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+            /**
+             * Updated Time
+             * Format: date-time
+             */
+            updated_time: string;
+            /** Participants */
+            participants: components["schemas"]["VersionParticipantRead"][];
+        };
+        /**
+         * VersionStatus
+         * @enum {string}
+         */
+        VersionStatus: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+        /** VersionSummaryRead */
+        VersionSummaryRead: {
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string;
+            /** Name */
+            name: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            status: components["schemas"]["VersionStatus"];
+            /** Revision */
+            revision: number;
+            /**
+             * Task Count
+             * @default 0
+             */
+            task_count: number;
+            /**
+             * Unfinished Task Count
+             * @default 0
+             */
+            unfinished_task_count: number;
+            /** Created By */
+            created_by: string;
+            /** Updated By */
+            updated_by: string;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+            /**
+             * Updated Time
+             * Format: date-time
+             */
+            updated_time: string;
+        };
+        /** VersionUpdate */
+        VersionUpdate: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Name */
+            name?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            status?: components["schemas"]["VersionStatus"] | null;
+            /** Participant Ids */
+            participant_ids?: string[] | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -2508,6 +2821,218 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_TaskLaneOrderRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_versions_api_v1_projects__project_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionList_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_version_api_v1_projects__project_id__versions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_completion_impact_api_v1_projects__project_id__versions__version_id__completion_impact_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionCompletionImpact_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_v1_projects__project_id__versions__version_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_version_api_v1_projects__project_id__versions__version_id__delete: {
+        parameters: {
+            query: {
+                expected_revision: number;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionDeleteResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_version_api_v1_projects__project_id__versions__version_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                version_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_VersionRead_"];
                 };
             };
             /** @description Validation Error */

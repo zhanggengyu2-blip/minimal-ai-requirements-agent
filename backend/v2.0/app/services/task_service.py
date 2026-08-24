@@ -1,15 +1,17 @@
 from datetime import date
 
-from sqlalchemy import case, delete, func, inspect, select, text, update
+from sqlalchemy import case, delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, ConflictError, NotFoundError
 from app.db.models import (
     ProjectMember,
+    ProjectVersion,
     Task,
     TaskLane,
     TaskStatus,
     UserAccount,
+    VersionParticipant,
     utc_now,
 )
 from app.schemas.task import (
@@ -117,7 +119,11 @@ class TaskService:
             updated_by=actor.id,
         )
         self.db.add(task)
-        self._ensure_version_participant(payload.version_id, payload.assignee_id)
+        self._ensure_version_participant(
+            payload.version_id,
+            payload.assignee_id,
+            updated_by=actor.id,
+        )
         self.db.commit()
         self.db.refresh(task)
         return task
@@ -170,7 +176,11 @@ class TaskService:
         if result.rowcount != 1:
             self.db.rollback()
             self._raise_revision_conflict(project_id, task.id, payload.expected_revision)
-        self._ensure_version_participant(version_id, assignee_id)
+        self._ensure_version_participant(
+            version_id,
+            assignee_id,
+            updated_by=actor.id,
+        )
         self.db.commit()
         refreshed = self.db.get(Task, task.id)
         if refreshed is None:
@@ -309,35 +319,32 @@ class TaskService:
     def _validate_version(self, project_id: str, version_id: str | None) -> None:
         if version_id is None:
             return
-        bind = self.db.get_bind()
-        if not inspect(bind).has_table("project_version"):
-            raise NotFoundError("版本不存在")
-        row = self.db.execute(
-            text("SELECT project_id FROM project_version WHERE id = :version_id"),
-            {"version_id": version_id},
-        ).first()
-        if row is None or row.project_id != project_id:
+        version = self.db.get(ProjectVersion, version_id)
+        if version is None or version.project_id != project_id:
             raise NotFoundError("版本不存在")
 
     def _ensure_version_participant(
-        self, version_id: str | None, assignee_id: str
+        self,
+        version_id: str | None,
+        assignee_id: str,
+        *,
+        updated_by: str,
     ) -> None:
-        if version_id is None or not inspect(self.db.get_bind()).has_table(
-            "version_participant"
-        ):
+        if version_id is None:
             return
-        self.db.execute(
-            text(
-                "INSERT OR IGNORE INTO version_participant "
-                "(version_id, user_id, created_time) "
-                "VALUES (:version_id, :user_id, :created_time)"
-            ),
-            {
-                "version_id": version_id,
-                "user_id": assignee_id,
-                "created_time": utc_now(),
-            },
-        )
+        if self.db.get(VersionParticipant, (version_id, assignee_id)) is None:
+            self.db.add(
+                VersionParticipant(version_id=version_id, user_id=assignee_id)
+            )
+            self.db.execute(
+                update(ProjectVersion)
+                .where(ProjectVersion.id == version_id)
+                .values(
+                    revision=ProjectVersion.revision + 1,
+                    updated_by=updated_by,
+                    updated_time=utc_now(),
+                )
+            )
 
     @staticmethod
     def _validate_dates(start_date: date | None, due_date: date | None) -> None:

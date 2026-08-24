@@ -140,7 +140,18 @@ python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
 | GET | `/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order` | 查询完整泳道顺序 |
 | PUT | `/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order` | 使用泳道修订号保存完整顺序 |
 
-`version_id` 已进入任务模型和接口，但项目版本表属于 T6。在 T6 完成前仅支持 `null`，传入非空版本 ID 会返回“版本不存在”。
+版本接口：
+
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| GET | `/api/v1/projects/{project_id}/versions` | 按创建时间倒序查询版本 |
+| POST | `/api/v1/projects/{project_id}/versions` | 创建版本及初始参与人员 |
+| GET | `/api/v1/projects/{project_id}/versions/{version_id}` | 查询版本详情、参与人员和任务统计 |
+| PATCH | `/api/v1/projects/{project_id}/versions/{version_id}` | 使用版本修订号更新版本 |
+| GET | `/api/v1/projects/{project_id}/versions/{version_id}/completion-impact` | 查询全部及未完成任务数量 |
+| DELETE | `/api/v1/projects/{project_id}/versions/{version_id}` | 删除版本并解除任务关联 |
+
+`task.version_id` 已接入真实版本校验。创建版本任务或把任务改给尚未参与该版本的项目成员时，系统会在同一事务中自动补齐版本参与人员；删除版本只把任务的 `version_id` 置空，不删除任务。
 
 ## Dify 配置
 

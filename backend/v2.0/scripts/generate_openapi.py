@@ -39,6 +39,12 @@ OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
     ("/api/v1/projects/{project_id}/tasks/{task_id}", "delete"): ("永久删除任务", "V3.0", "使用任务修订号永久删除任务并更新泳道修订号。"),
     ("/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order", "get"): ("查询完整泳道顺序", "V3.0", "返回负责人完整任务 ID 顺序和泳道修订号。"),
     ("/api/v1/projects/{project_id}/task-lanes/{assignee_id}/order", "put"): ("保存完整泳道顺序", "V3.0", "使用泳道修订号原子保存完整任务 ID 顺序。"),
+    ("/api/v1/projects/{project_id}/versions", "get"): ("查询版本列表", "V3.0", "按创建时间倒序返回当前项目中的全部实际版本和任务统计。"),
+    ("/api/v1/projects/{project_id}/versions", "post"): ("创建版本", "V3.0", "创建版本及至少一名初始参与人员，参与人员必须是当前项目成员。"),
+    ("/api/v1/projects/{project_id}/versions/{version_id}", "get"): ("查询版本详情", "V3.0", "返回版本信息、按项目成员顺序排列的参与人员及任务统计。"),
+    ("/api/v1/projects/{project_id}/versions/{version_id}", "patch"): ("更新版本", "V3.0", "使用版本修订号修改名称、日期、状态或完整参与人员集合。"),
+    ("/api/v1/projects/{project_id}/versions/{version_id}", "delete"): ("删除版本", "V3.0", "使用版本修订号删除版本并解除任务关联，不删除任何任务。"),
+    ("/api/v1/projects/{project_id}/versions/{version_id}/completion-impact", "get"): ("查询版本完成影响", "V3.0", "返回当前版本全部任务数和未完成任务数，供完成确认使用。"),
     ("/api/v1/requirements", "post"): ("直接创建并分析需求", "V1.1", "不经过访谈，直接保存原始需求并调用需求分析 Workflow。"),
     ("/api/v1/requirements", "get"): ("查询需求列表", "V1.1", "分页、筛选和搜索需求。"),
     ("/api/v1/requirements/{requirement_id}", "get"): ("查询需求详情", "V1.1", "按需求 ID 查询需求详情。"),
@@ -71,6 +77,7 @@ TAG_META = {
     "auth": "身份注册、登录与会话（V3.0）",
     "projects": "项目与成员管理（V3.0）",
     "tasks": "团队任务与泳道排序（V3.0）",
+    "versions": "版本排期与参与人员（V3.0）",
     "requirements": "需求管理（V1.1/V2.0）",
     "interviews": "对话式需求访谈（V2.0）",
     "departments": "部门管理（V1.1）",
@@ -87,7 +94,7 @@ def build_schema() -> dict[str, Any]:
             "version": "3.0.0",
             "description": (
                 "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、"
-                "HttpOnly Cookie 会话、CSRF、管理员权限、项目成员、项目级访问控制和团队任务；"
+                "HttpOnly Cookie 会话、CSRF、管理员权限、项目成员、项目级访问控制、团队任务和版本排期；"
                 "Dify API Key 仍仅由后端环境变量持有。"
             ),
         }

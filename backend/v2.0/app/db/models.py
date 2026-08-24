@@ -48,6 +48,12 @@ class TaskPriority(str, enum.Enum):
     P3 = "P3"
 
 
+class VersionStatus(str, enum.Enum):
+    NOT_STARTED = "NOT_STARTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+
+
 class AnalysisStatus(str, enum.Enum):
     PENDING = "PENDING"
     ANALYZING = "ANALYZING"
@@ -263,6 +269,9 @@ class Project(Base):
     tasks: Mapped[list["Task"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
+    versions: Mapped[list["ProjectVersion"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):
@@ -290,6 +299,62 @@ class ProjectMember(Base):
     user: Mapped[UserAccount] = relationship(
         back_populates="project_memberships", foreign_keys=[user_id]
     )
+
+
+class ProjectVersion(Base):
+    __tablename__ = "project_version"
+    __table_args__ = (
+        CheckConstraint("end_date >= start_date", name="ck_project_version_date_order"),
+        UniqueConstraint("project_id", "name", name="uq_project_version_project_name"),
+        Index("ix_project_version_project_created", "project_id", "created_time"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    start_date: Mapped[date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[date] = mapped_column(Date, nullable=False)
+    status: Mapped[VersionStatus] = mapped_column(
+        Enum(VersionStatus, native_enum=False),
+        default=VersionStatus.NOT_STARTED,
+        nullable=False,
+    )
+    revision: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_by: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    updated_by: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
+    )
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False
+    )
+
+    project: Mapped[Project] = relationship(back_populates="versions")
+    participants: Mapped[list["VersionParticipant"]] = relationship(
+        back_populates="version", cascade="all, delete-orphan"
+    )
+
+
+class VersionParticipant(Base):
+    __tablename__ = "version_participant"
+
+    version_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("project_version.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), primary_key=True
+    )
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, nullable=False
+    )
+
+    version: Mapped[ProjectVersion] = relationship(back_populates="participants")
 
 
 class TaskLane(Base):

@@ -257,7 +257,7 @@ watch(() => props.modelValue, (visible) => {
           </el-select>
         </el-form-item>
         <el-form-item label="所属版本（选填）">
-          <el-select :model-value="form.version_id" disabled placeholder="T6 接入版本后可选" />
+          <el-select :model-value="form.version_id" disabled placeholder="T7 接入版本选择" />
         </el-form-item>
         <el-form-item label="开始日期（选填）">
           <el-date-picker v-model="form.start_date" type="date" value-format="YYYY-MM-DD" placeholder="选择开始日期" />

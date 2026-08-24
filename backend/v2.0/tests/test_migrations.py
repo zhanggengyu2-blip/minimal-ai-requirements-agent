@@ -8,7 +8,7 @@ from app.db.session import SessionLocal, engine
 
 
 def test_database_is_at_v3_baseline() -> None:
-    assert current_revision() == "0005_project_member_order"
+    assert current_revision() == "0006_project_versions"
 
 
 def test_repeated_upgrade_preserves_seed_data() -> None:

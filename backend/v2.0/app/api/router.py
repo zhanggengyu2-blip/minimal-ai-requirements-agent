@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import require_authenticated_request
-from app.api.routes import auth, health, interviews, organization, projects, requirements, tasks
+from app.api.routes import auth, health, interviews, organization, projects, requirements, tasks, versions
 
 
 api_router = APIRouter()
@@ -13,6 +13,9 @@ api_router.include_router(
 )
 api_router.include_router(
     tasks.router, prefix="/projects", tags=["tasks"], dependencies=protected
+)
+api_router.include_router(
+    versions.router, prefix="/projects", tags=["versions"], dependencies=protected
 )
 api_router.include_router(
     requirements.router,
