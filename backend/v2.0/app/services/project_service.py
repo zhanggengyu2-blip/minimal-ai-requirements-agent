@@ -31,14 +31,35 @@ class ProjectService:
 
     def create(self, payload: ProjectCreate, *, actor: UserAccount) -> ProjectRead:
         self._validate_department(payload.department_id)
-        project = Project(**payload.model_dump(), created_by=actor.id)
+        ordered_member_ids = [
+            actor.id,
+            *(user_id for user_id in payload.member_ids if user_id != actor.id),
+        ]
+        found_member_ids = set(
+            self.db.scalars(
+                select(UserAccount.id).where(UserAccount.id.in_(ordered_member_ids))
+            )
+        )
+        if found_member_ids != set(ordered_member_ids):
+            raise NotFoundError("成员列表中存在未注册用户")
+
+        project = Project(
+            **payload.model_dump(exclude={"member_ids"}),
+            created_by=actor.id,
+        )
         self.db.add(project)
         try:
             self.db.flush()
-            self.db.add(
-                ProjectMember(project_id=project.id, user_id=actor.id, added_by=actor.id)
-            )
-            self.db.add(TaskLane(project_id=project.id, assignee_id=actor.id))
+            for sort_order, user_id in enumerate(ordered_member_ids, start=1):
+                self.db.add(
+                    ProjectMember(
+                        project_id=project.id,
+                        user_id=user_id,
+                        added_by=actor.id,
+                        sort_order=sort_order,
+                    )
+                )
+                self.db.add(TaskLane(project_id=project.id, assignee_id=user_id))
             self.db.commit()
         except IntegrityError as exc:
             self.db.rollback()
@@ -165,7 +186,7 @@ class ProjectService:
             .join(UserAccount, UserAccount.id == ProjectMember.user_id)
             .join(Department, Department.id == UserAccount.department_id)
             .where(ProjectMember.project_id == project.id)
-            .order_by(Department.name, UserAccount.name, UserAccount.id)
+            .order_by(ProjectMember.sort_order, UserAccount.id)
         ).all()
         task_counts = self._assigned_task_counts(project.id)
         return ProjectMemberList(
@@ -176,6 +197,7 @@ class ProjectService:
                     department_id=department.id,
                     department_name=department.name,
                     role=user.role,
+                    sort_order=membership.sort_order,
                     task_count=task_counts.get(user.id, 0),
                     created_time=membership.created_time,
                 )
@@ -195,17 +217,22 @@ class ProjectService:
         if project.status != ProjectStatus.ACTIVE:
             raise PermissionDeniedError("归档项目为只读状态", code="PROJECT_ARCHIVED")
 
-        requested_ids = set(payload.user_ids)
+        ordered_ids = payload.user_ids
+        requested_ids = set(ordered_ids)
         users = list(self.db.scalars(select(UserAccount).where(UserAccount.id.in_(requested_ids))))
         found_ids = {user.id for user in users}
         if found_ids != requested_ids:
             raise NotFoundError("成员列表中存在未注册用户")
 
-        current_ids = set(
+        current_memberships = list(
             self.db.scalars(
-                select(ProjectMember.user_id).where(ProjectMember.project_id == project.id)
+                select(ProjectMember).where(ProjectMember.project_id == project.id)
             )
         )
+        membership_by_user_id = {
+            membership.user_id: membership for membership in current_memberships
+        }
+        current_ids = set(membership_by_user_id)
         removed_ids = current_ids - requested_ids
         assigned_counts = self._assigned_task_counts(project.id, user_ids=removed_ids)
         blocked = {user_id: count for user_id, count in assigned_counts.items() if count > 0}
@@ -252,9 +279,20 @@ class ProjectService:
                     ProjectMember.user_id.in_(removed_ids),
                 )
             )
-        for user_id in requested_ids - current_ids:
-            self.db.add(ProjectMember(project_id=project.id, user_id=user_id, added_by=actor.id))
-            self.db.add(TaskLane(project_id=project.id, assignee_id=user_id))
+        for sort_order, user_id in enumerate(ordered_ids, start=1):
+            membership = membership_by_user_id.get(user_id)
+            if membership is None:
+                self.db.add(
+                    ProjectMember(
+                        project_id=project.id,
+                        user_id=user_id,
+                        added_by=actor.id,
+                        sort_order=sort_order,
+                    )
+                )
+                self.db.add(TaskLane(project_id=project.id, assignee_id=user_id))
+            else:
+                membership.sort_order = sort_order
         self.db.commit()
         return self.list_members(project.id, actor=actor)
 

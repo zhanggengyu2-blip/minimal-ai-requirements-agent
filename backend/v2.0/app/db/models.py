@@ -267,7 +267,10 @@ class Project(Base):
 
 class ProjectMember(Base):
     __tablename__ = "project_member"
-    __table_args__ = (Index("ix_project_member_user_project", "user_id", "project_id"),)
+    __table_args__ = (
+        Index("ix_project_member_user_project", "user_id", "project_id"),
+        Index("ix_project_member_project_sort", "project_id", "sort_order"),
+    )
 
     project_id: Mapped[str] = mapped_column(
         String(32), ForeignKey("project.id", ondelete="CASCADE"), primary_key=True
@@ -278,6 +281,7 @@ class ProjectMember(Base):
     added_by: Mapped[str] = mapped_column(
         String(32), ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False
     )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False)
     created_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )

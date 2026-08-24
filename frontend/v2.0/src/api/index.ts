@@ -81,6 +81,21 @@ export const authApi = {
 export const userApi = {
   list: (params: UserListParams = {}) =>
     http.get<never, PageData<User>>('/users', { params }),
+  listAll: async () => {
+    const firstPage = await http.get<never, PageData<User>>('/users', {
+      params: { page: 1, page_size: 100 },
+    })
+    const pageCount = Math.ceil(firstPage.total / firstPage.page_size)
+    if (pageCount <= 1) return firstPage.items
+    const remainingPages = await Promise.all(
+      Array.from({ length: pageCount - 1 }, (_, index) =>
+        http.get<never, PageData<User>>('/users', {
+          params: { page: index + 2, page_size: 100 },
+        }),
+      ),
+    )
+    return [firstPage, ...remainingPages].flatMap((page) => page.items)
+  },
 }
 
 export const requirementApi = {

@@ -61,8 +61,18 @@ class TaskService:
         tasks = list(
             self.db.scalars(
                 select(Task)
+                .join(
+                    ProjectMember,
+                    (ProjectMember.project_id == Task.project_id)
+                    & (ProjectMember.user_id == Task.assignee_id),
+                )
                 .where(*filters)
-                .order_by(Task.assignee_id, Task.sort_order, Task.created_time, Task.id)
+                .order_by(
+                    ProjectMember.sort_order,
+                    Task.sort_order,
+                    Task.created_time,
+                    Task.id,
+                )
             )
         )
         lane_rows = self.db.execute(
@@ -73,7 +83,7 @@ class TaskService:
                 & (TaskLane.assignee_id == ProjectMember.user_id),
             )
             .where(ProjectMember.project_id == project_id)
-            .order_by(ProjectMember.user_id)
+            .order_by(ProjectMember.sort_order, ProjectMember.user_id)
         ).all()
         return TaskList(
             items=[TaskRead.model_validate(task) for task in tasks],

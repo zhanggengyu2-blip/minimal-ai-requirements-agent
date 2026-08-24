@@ -139,7 +139,7 @@ export interface paths {
         put?: never;
         /**
          * 【V3.0】 创建项目
-         * @description 创建需求所属项目，并自动将当前用户加入项目成员。
+         * @description 创建需求所属项目并写入首批成员，当前用户自动排在项目成员首位。
          */
         post: operations["create_project_api_v1_projects_post"];
         delete?: never;
@@ -181,12 +181,12 @@ export interface paths {
         };
         /**
          * 【V3.0】 查询项目成员
-         * @description 返回项目成员、部门、任务数量和成员集合修订号。
+         * @description 按项目统一顺序返回成员、部门、任务数量和成员集合修订号。
          */
         get: operations["list_project_members_api_v1_projects__project_id__members_get"];
         /**
          * 【V3.0】 保存项目成员
-         * @description 用完整用户 ID 集合和成员修订号原子保存项目成员。
+         * @description 用完整有序用户 ID 列表和成员修订号原子保存项目成员及顺序。
          */
         put: operations["save_project_members_api_v1_projects__project_id__members_put"];
         post?: never;
@@ -1522,6 +1522,8 @@ export interface components {
             project_context: string;
             /** Department Id */
             department_id?: string | null;
+            /** Member Ids */
+            member_ids?: string[];
         };
         /** ProjectMemberList */
         ProjectMemberList: {
@@ -1541,6 +1543,8 @@ export interface components {
             /** Department Name */
             department_name: string;
             role: components["schemas"]["UserRole"];
+            /** Sort Order */
+            sort_order: number;
             /**
              * Task Count
              * @default 0

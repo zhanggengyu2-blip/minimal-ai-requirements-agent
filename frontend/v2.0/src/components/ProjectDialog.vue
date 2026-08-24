@@ -1,15 +1,36 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import { FolderAdd } from '@element-plus/icons-vue'
-import { projectApi } from '../api'
+import { FolderAdd, Search, UserFilled } from '@element-plus/icons-vue'
+import { projectApi, userApi, type User } from '../api'
+import { useCurrentUser } from '../composables/useCurrentUser'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean]; created: [] }>()
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
+const loadingUsers = ref(false)
+const users = ref<User[]>([])
+const selectedIds = ref<string[]>([])
+const memberKeyword = ref('')
 const form = reactive({ name: '', project_context: '', description: '' })
+const { currentUser, ensureSession } = useCurrentUser()
+const orderedUsers = computed(() => {
+  const creatorId = currentUser.value?.id
+  return [...users.value].sort((left, right) => {
+    if (left.id === creatorId) return -1
+    if (right.id === creatorId) return 1
+    return left.name.localeCompare(right.name, 'zh-CN')
+  })
+})
+const filteredUsers = computed(() => {
+  const normalized = memberKeyword.value.trim().toLowerCase()
+  if (!normalized) return orderedUsers.value
+  return orderedUsers.value.filter((user) =>
+    `${user.name} ${user.department_name}`.toLowerCase().includes(normalized),
+  )
+})
 const rules: FormRules = {
   name: [
     { required: true, message: '请输入项目名称', trigger: 'blur' },
@@ -22,9 +43,21 @@ const rules: FormRules = {
   description: [{ max: 2000, message: '项目简介不能超过2000个字符', trigger: 'blur' }],
 }
 
-watch(() => props.modelValue, (visible) => {
+watch(() => props.modelValue, async (visible) => {
   if (!visible) return
   Object.assign(form, { name: '', project_context: '', description: '' })
+  memberKeyword.value = ''
+  loadingUsers.value = true
+  try {
+    await ensureSession()
+    const directory = await userApi.listAll()
+    users.value = currentUser.value && !directory.some((user) => user.id === currentUser.value?.id)
+      ? [currentUser.value, ...directory]
+      : directory
+    selectedIds.value = currentUser.value ? [currentUser.value.id] : []
+  } finally {
+    loadingUsers.value = false
+  }
   formRef.value?.clearValidate()
 })
 
@@ -35,9 +68,13 @@ const submit = async () => {
     ElMessage.warning('请填写项目名称和项目背景与上下文')
     return
   }
+  if (!currentUser.value || !selectedIds.value.includes(currentUser.value.id)) {
+    ElMessage.warning('创建人必须作为首位项目成员')
+    return
+  }
   submitting.value = true
   try {
-    await projectApi.create({ ...form })
+    await projectApi.create({ ...form, member_ids: selectedIds.value })
     ElMessage.success('项目创建成功')
     emit('created')
     close()
@@ -51,7 +88,7 @@ const submit = async () => {
   <el-dialog
     :model-value="modelValue"
     width="572px"
-    class="product-dialog"
+    class="product-dialog project-create-dialog"
     :close-on-click-modal="false"
     @close="close"
   >
@@ -79,6 +116,30 @@ const submit = async () => {
       </el-form-item>
       <el-form-item label="项目简介（选填）" prop="description">
         <el-input v-model="form.description" maxlength="2000" placeholder="一句话概括项目" />
+      </el-form-item>
+      <el-form-item label="项目成员">
+        <el-input
+          v-model="memberKeyword"
+          :prefix-icon="Search"
+          clearable
+          placeholder="搜索姓名或部门"
+          class="project-member-search"
+        />
+        <div v-loading="loadingUsers" class="member-directory project-create-members">
+          <el-checkbox-group v-model="selectedIds">
+            <label v-for="user in filteredUsers" :key="user.id" class="member-option">
+              <el-checkbox :value="user.id" :disabled="user.id === currentUser?.id" />
+              <span class="member-option-avatar"><el-icon><UserFilled /></el-icon></span>
+              <span class="member-option-info">
+                <strong>{{ user.name }}</strong>
+                <small>{{ user.department_name }} · {{ user.role === 'ADMIN' ? '管理员' : '成员' }}</small>
+              </span>
+              <el-tag v-if="user.id === currentUser?.id" size="small" type="info">创建人</el-tag>
+            </label>
+          </el-checkbox-group>
+          <el-empty v-if="!loadingUsers && !filteredUsers.length" description="没有匹配的注册用户" />
+        </div>
+        <div class="field-tip">创建人固定为首位成员；其他成员按当前选择顺序加入项目</div>
       </el-form-item>
       <div class="blue-note">
         <el-icon :size="27"><FolderAdd /></el-icon>

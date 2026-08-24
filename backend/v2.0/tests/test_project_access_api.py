@@ -74,7 +74,76 @@ def test_project_creator_is_first_member(db_session):
     assert members.status_code == 200
     assert members.json()["data"]["member_revision"] == 1
     assert [item["user_id"] for item in members.json()["data"]["items"]] == [admin.id]
+    assert [item["sort_order"] for item in members.json()["data"]["items"]] == [1]
     assert db_session.get(ProjectMember, (project["id"], admin.id)) is not None
+
+
+def test_project_create_members_and_reorder_share_one_project_order(db_session):
+    admin = _admin(db_session)
+    first_selected = _member(db_session, "创建时成员甲")
+    second_selected = _member(db_session, "创建时成员乙")
+
+    with TestClient(app) as client:
+        created = client.post(
+            "/api/v1/projects",
+            json={
+                "name": "创建即选成员项目",
+                "project_context": "验证创建项目时选人与统一成员顺序",
+                "member_ids": [first_selected.id, admin.id, second_selected.id],
+            },
+        )
+        assert created.status_code == 201
+        project = created.json()["data"]
+
+        initial = client.get(f"/api/v1/projects/{project['id']}/members")
+        reordered = client.put(
+            f"/api/v1/projects/{project['id']}/members",
+            json={
+                "user_ids": [second_selected.id, admin.id, first_selected.id],
+                "expected_member_revision": initial.json()["data"]["member_revision"],
+            },
+        )
+        task_list = client.get(f"/api/v1/projects/{project['id']}/tasks")
+
+    assert project["member_count"] == 3
+    initial_items = initial.json()["data"]["items"]
+    assert [item["user_id"] for item in initial_items] == [
+        admin.id,
+        first_selected.id,
+        second_selected.id,
+    ]
+    assert [item["sort_order"] for item in initial_items] == [1, 2, 3]
+
+    assert reordered.status_code == 200
+    reordered_items = reordered.json()["data"]["items"]
+    assert [item["user_id"] for item in reordered_items] == [
+        second_selected.id,
+        admin.id,
+        first_selected.id,
+    ]
+    assert [item["sort_order"] for item in reordered_items] == [1, 2, 3]
+    assert [lane["assignee_id"] for lane in task_list.json()["data"]["lanes"]] == [
+        second_selected.id,
+        admin.id,
+        first_selected.id,
+    ]
+
+
+def test_project_create_rejects_unregistered_member_atomically(db_session):
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/projects",
+            json={
+                "name": "包含无效成员的项目",
+                "project_context": "无效成员不应留下半成品项目",
+                "member_ids": ["f" * 32],
+            },
+        )
+        projects = client.get("/api/v1/projects")
+
+    assert response.status_code == 404
+    assert response.json()["message"] == "成员列表中存在未注册用户"
+    assert projects.json()["data"]["total"] == 0
 
 
 def test_member_visibility_covers_projects_requirements_and_interviews(db_session):

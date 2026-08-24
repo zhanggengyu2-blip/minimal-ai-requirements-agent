@@ -11,6 +11,7 @@ class ProjectCreate(ORMModel):
     description: str = Field(default="", max_length=2000)
     project_context: str = Field(min_length=1, max_length=10000)
     department_id: str | None = Field(default=None, min_length=32, max_length=32)
+    member_ids: list[str] = Field(default_factory=list)
 
     @field_validator("name", "project_context")
     @classmethod
@@ -18,6 +19,15 @@ class ProjectCreate(ORMModel):
         value = value.strip()
         if not value:
             raise ValueError("字段不能仅包含空白字符")
+        return value
+
+    @field_validator("member_ids")
+    @classmethod
+    def validate_member_ids(cls, value: list[str]) -> list[str]:
+        if any(len(user_id) != 32 for user_id in value):
+            raise ValueError("用户 ID 必须为 32 位")
+        if len(value) != len(set(value)):
+            raise ValueError("成员列表不能包含重复用户")
         return value
 
 
@@ -69,6 +79,7 @@ class ProjectMemberRead(ORMModel):
     department_id: str
     department_name: str
     role: UserRole
+    sort_order: int = Field(ge=1)
     task_count: int = 0
     created_time: datetime
 
