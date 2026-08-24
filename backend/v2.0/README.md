@@ -95,6 +95,16 @@ python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
 | GET | `/api/v1/auth/me` | 当前用户和 CSRF 令牌 |
 | DELETE | `/api/v1/auth/session` | 撤销当前会话并退出 |
 
+## OpenAPI 与 Apifox
+
+接口调整后重新生成中文 OpenAPI：
+
+```bash
+python scripts/generate_openapi.py
+```
+
+交付文件为 `docs/openapi-v3.0-apifox.json`；`docs/openapi-v2.0-apifox.json` 仅作为旧导入配置的兼容别名。后端启动后也可从 `http://127.0.0.1:8000/openapi.json` 直接导入。具体登录 Cookie、CSRF 和变量传递步骤见 `docs/V3.0-Apifox验收指南.md`；前后端联合验收命令见 `docs/V3.0-本地验收启动指南.md`。
+
 登录 Cookie 使用 `HttpOnly` 和 `SameSite=Lax`。除登录、注册和健康检查外，所有业务接口都要求登录；所有写请求还必须使用 `X-CSRF-Token` 请求头携带 `/auth/me` 返回的 CSRF 令牌。
 
 ## 项目成员与可见性

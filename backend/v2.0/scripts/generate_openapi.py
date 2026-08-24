@@ -16,11 +16,14 @@ from app.main import app
 
 OUTPUTS = (
     ROOT / "app" / "openapi.json",
+    ROOT / "docs" / "openapi-v3.0-apifox.json",
+    # 保留旧文件名，避免已建立的 Apifox 导入配置立即失效。
     ROOT / "docs" / "openapi-v2.0-apifox.json",
 )
 
 OPERATION_META: dict[tuple[str, str], tuple[str, str, str]] = {
     ("/api/v1/health", "get"): ("健康检查", "V1.1", "检查 FastAPI 服务是否可访问。"),
+    ("/api/v1/ready", "get"): ("就绪检查", "V3.0", "检查数据库连接和 Alembic 迁移是否已到最新版本。"),
     ("/api/v1/auth/departments", "get"): ("查询登录部门", "V3.0", "公开返回登录和首次注册可选择的部门 ID 与名称。"),
     ("/api/v1/auth/registrations", "post"): ("首次注册", "V3.0", "使用部门、姓名和一次性邀请码创建普通成员并建立登录会话。"),
     ("/api/v1/auth/sessions", "post"): ("统一密码登录", "V3.0", "使用部门、姓名和公司统一密码建立服务端会话。"),

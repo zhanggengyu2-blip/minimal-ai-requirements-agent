@@ -1,6 +1,6 @@
 # 前端 V3.0 运行说明
 
-当前前端保留项目、需求和对话式需求访谈能力，并已接入 V3.0 身份会话、项目成员和稳定 URL 应用壳。团队任务与版本排期的正式页面仍按 T5～T8 计划实施。
+当前前端保留项目、需求和对话式需求访谈能力，并已完成 V3.0 身份会话、项目成员、团队任务、版本排期与共用甘特图。
 
 本项目的前端固定采用 Vue 3 + TypeScript + Element Plus + Axios + Vue Router + Vite。
 
@@ -33,6 +33,15 @@ VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
 pnpm run generate:api
 pnpm run test
 pnpm run build
+```
+
+## Playwright 闭环验收
+
+关键闭环用例位于 `e2e/core-flow.spec.ts`，使用 1280×900 视口验证登录、团队任务、版本排期和两个甘特图共用同一任务。它只允许连接一次性测试库，不得对正式库运行。
+
+```bash
+pnpm exec playwright install chromium
+pnpm run test:e2e
 ```
 
 请求封装位于 `src/api/http.ts`，业务请求函数位于 `src/api/index.ts`。Axios 默认携带 Cookie，写请求附加 CSRF 令牌；401、403、409 和 422 使用不同交互路径。

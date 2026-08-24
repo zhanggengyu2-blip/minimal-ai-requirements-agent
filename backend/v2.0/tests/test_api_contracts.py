@@ -23,6 +23,20 @@ def _analysis() -> DifyAnalysisResult:
     )
 
 
+def test_health_and_readiness_endpoints_report_runtime_state():
+    with TestClient(app) as client:
+        health = client.get("/api/v1/health")
+        ready = client.get("/api/v1/ready")
+
+    assert health.status_code == 200
+    assert health.json()["data"] == {"status": "ok"}
+    assert ready.status_code == 200
+    assert ready.json()["data"] == {
+        "status": "ready",
+        "migration_revision": "0006_project_versions",
+    }
+
+
 def test_request_id_is_echoed_in_success_and_validation_error():
     with TestClient(app) as client:
         success = client.get("/api/v1/projects", headers={"X-Request-ID": "request-success"})
