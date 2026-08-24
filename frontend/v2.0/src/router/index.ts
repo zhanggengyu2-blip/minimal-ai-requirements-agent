@@ -58,22 +58,14 @@ export const router = createRouter({
         {
           path: 'projects/:projectId/versions',
           name: 'project-versions',
-          component: () => import('../views/ModulePlaceholder.vue'),
-          meta: {
-            projectRoute: true,
-            placeholderTitle: '版本排期',
-            placeholderDescription: '版本入口已建立，版本后端与正式页面将在 T6、T7 实现。',
-          },
+          component: () => import('../views/VersionSchedulingRoute.vue'),
+          meta: { projectRoute: true },
         },
         {
           path: 'projects/:projectId/versions/:versionId/list',
           name: 'project-version-list',
-          component: () => import('../views/ModulePlaceholder.vue'),
-          meta: {
-            projectRoute: true,
-            placeholderTitle: '版本任务列表',
-            placeholderDescription: '版本任务路由已就绪，将在版本 API 完成后接入。',
-          },
+          component: () => import('../views/VersionSchedulingRoute.vue'),
+          meta: { projectRoute: true },
         },
         {
           path: 'projects/:projectId/versions/:versionId/gantt',

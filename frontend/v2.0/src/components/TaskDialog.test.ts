@@ -20,6 +20,30 @@ afterEach(() => {
 })
 
 describe('TaskDialog', () => {
+  it('offers real versions in the shared task form', async () => {
+    const wrapper = mount(TaskDialog, {
+      props: {
+        modelValue: false,
+        projectId: 'p'.repeat(32),
+        members: [member],
+        initialVersionId: 'v'.repeat(32),
+        versions: [{
+          id: 'v'.repeat(32), project_id: 'p'.repeat(32), name: 'V3.0 团队任务与版本排期',
+          start_date: '2026-08-01', end_date: '2026-08-31', status: 'IN_PROGRESS', revision: 1,
+          task_count: 0, unfinished_task_count: 0, created_by: member.user_id, updated_by: member.user_id,
+          created_time: '2026-08-24T00:00:00Z', updated_time: '2026-08-24T00:00:00Z',
+        }],
+      },
+      attachTo: document.body,
+      global: { plugins: [ElementPlus] },
+    })
+    await wrapper.setProps({ modelValue: true })
+    await flushPromises()
+
+    expect(document.body.textContent).toContain('V3.0 团队任务与版本排期')
+    expect(document.body.textContent).not.toContain('T7 接入版本选择')
+  })
+
   it('shows task capacity failures with the confirmed create wording', async () => {
     const wrapper = mount(TaskDialog, {
       props: {

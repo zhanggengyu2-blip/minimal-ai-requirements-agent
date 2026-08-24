@@ -5,8 +5,9 @@ import type { Task, TaskPriority, TaskStatus } from '../api'
 
 const props = withDefaults(defineProps<{
   task: Task
+  versionName?: string
   readOnly?: boolean
-}>(), { readOnly: false })
+}>(), { versionName: '', readOnly: false })
 const emit = defineEmits<{
   open: [task: Task]
   dragstart: [task: Task, event: DragEvent]
@@ -73,7 +74,7 @@ const startDrag = (event: DragEvent) => {
     </div>
     <div class="task-card-detail">
       <span><el-icon><Calendar /></el-icon>{{ dateText }}</span>
-      <span><el-icon><Clock /></el-icon>{{ task.version_id ? '已关联版本' : '未排版本' }}</span>
+      <span><el-icon><Clock /></el-icon>{{ task.version_id ? (versionName || '已关联版本') : '未排版本' }}</span>
     </div>
   </article>
 </template>

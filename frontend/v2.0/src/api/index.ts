@@ -37,6 +37,14 @@ export type TaskLaneOrderUpdate = components['schemas']['TaskLaneOrderUpdate']
 export type TaskStatus = components['schemas']['TaskStatus']
 export type TaskStatusFilter = components['schemas']['TaskStatusFilter']
 export type TaskPriority = components['schemas']['TaskPriority']
+export type ProjectVersion = components['schemas']['VersionRead']
+export type VersionSummary = components['schemas']['VersionSummaryRead']
+export type VersionCreate = components['schemas']['VersionCreate']
+export type VersionUpdate = components['schemas']['VersionUpdate']
+export type VersionList = components['schemas']['VersionList']
+export type VersionCompletionImpact = components['schemas']['VersionCompletionImpact']
+export type VersionDeleteResult = components['schemas']['VersionDeleteResult']
+export type VersionStatus = components['schemas']['VersionStatus']
 export type ProjectListParams = NonNullable<operations['list_projects_api_v1_projects_get']['parameters']['query']>
 export type RequirementListParams = NonNullable<operations['list_requirements_api_v1_requirements_get']['parameters']['query']>
 export type DepartmentListParams = NonNullable<operations['list_departments_api_v1_departments_get']['parameters']['query']>
@@ -143,6 +151,24 @@ export const taskApi = {
     }),
   reorderLane: (projectId: string, assigneeId: string, data: TaskLaneOrderUpdate) =>
     http.put<never, TaskLaneOrder>(`/projects/${projectId}/task-lanes/${assigneeId}/order`, data, {
+      skipGlobalError: true,
+    }),
+}
+
+export const versionApi = {
+  list: (projectId: string) =>
+    http.get<never, VersionList>(`/projects/${projectId}/versions`),
+  create: (projectId: string, data: VersionCreate) =>
+    http.post<never, ProjectVersion>(`/projects/${projectId}/versions`, data, { skipGlobalError: true }),
+  detail: (projectId: string, versionId: string) =>
+    http.get<never, ProjectVersion>(`/projects/${projectId}/versions/${versionId}`, { skipGlobalError: true }),
+  update: (projectId: string, versionId: string, data: VersionUpdate) =>
+    http.patch<never, ProjectVersion>(`/projects/${projectId}/versions/${versionId}`, data, { skipGlobalError: true }),
+  completionImpact: (projectId: string, versionId: string) =>
+    http.get<never, VersionCompletionImpact>(`/projects/${projectId}/versions/${versionId}/completion-impact`, { skipGlobalError: true }),
+  delete: (projectId: string, versionId: string, expectedRevision: number) =>
+    http.delete<never, VersionDeleteResult>(`/projects/${projectId}/versions/${versionId}`, {
+      params: { expected_revision: expectedRevision },
       skipGlobalError: true,
     }),
 }

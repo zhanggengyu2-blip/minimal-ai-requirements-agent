@@ -7,9 +7,11 @@ import TaskCard from '../components/TaskCard.vue'
 import TaskDialog from '../components/TaskDialog.vue'
 import {
   taskApi,
+  versionApi,
   type ProjectMember,
   type Task,
   type TaskStatusFilter,
+  type VersionSummary,
 } from '../api'
 import { ApiRequestError } from '../api/http'
 import { useProjectAccess } from '../composables/useProjectAccess'
@@ -22,6 +24,7 @@ const projectName = computed(() => access.project.value?.name || '当前项目')
 const members = computed(() => access.members.value?.items || [])
 const loading = ref(false)
 const tasks = ref<Task[]>([])
+const versions = ref<VersionSummary[]>([])
 const total = ref(0)
 const keyword = ref('')
 const status = ref<TaskStatusFilter>('UNFINISHED')
@@ -46,6 +49,7 @@ const groupedTasks = computed(() => {
   tasks.value.forEach((task) => result.get(task.assignee_id)?.push(task))
   return result
 })
+const versionNames = computed(() => new Map(versions.value.map((version) => [version.id, version.name])))
 
 const load = async () => {
   if (!projectId.value) return
@@ -152,7 +156,11 @@ const initialize = async () => {
   if (!access.project.value || access.project.value.id !== projectId.value) {
     await access.loadProjectAccess(projectId.value)
   }
-  await load()
+  const [versionList] = await Promise.all([
+    versionApi.list(projectId.value).catch(() => ({ items: [], total: 0 })),
+    load(),
+  ])
+  versions.value = versionList.items
 }
 
 watch(projectId, () => void initialize())
@@ -220,6 +228,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
             v-for="task in groupedTasks.get(member.user_id) || []"
             :key="task.id"
             :task="task"
+            :version-name="task.version_id ? versionNames.get(task.version_id) : ''"
             :read-only="access.readOnly.value || sortingAssigneeIds.has(member.user_id)"
             @open="openTask"
             @dragstart="startDrag"
@@ -248,6 +257,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
       :project-id="projectId"
       :members="members"
       :task="selectedTask"
+      :versions="versions"
       :initial-assignee-id="initialAssigneeId"
       :read-only="access.readOnly.value"
       @changed="load"

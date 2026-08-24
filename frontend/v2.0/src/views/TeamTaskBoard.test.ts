@@ -6,12 +6,17 @@ import TeamTaskBoard from './TeamTaskBoard.vue'
 
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
+  listVersions: vi.fn(),
   loadProjectAccess: vi.fn(),
 }))
 
 vi.mock('../api', async () => {
   const actual = await vi.importActual<typeof import('../api')>('../api')
-  return { ...actual, taskApi: { ...actual.taskApi, list: mocks.list } }
+  return {
+    ...actual,
+    taskApi: { ...actual.taskApi, list: mocks.list },
+    versionApi: { ...actual.versionApi, list: mocks.listVersions },
+  }
 })
 
 vi.mock('../composables/useProjectAccess', async () => {
@@ -36,6 +41,7 @@ vi.mock('../composables/useProjectAccess', async () => {
 
 describe('TeamTaskBoard', () => {
   it('loads unfinished tasks by default and keeps zero-task members visible', async () => {
+    mocks.listVersions.mockResolvedValue({ items: [], total: 0 })
     mocks.list.mockResolvedValue({
       total: 1,
       lanes: [

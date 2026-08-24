@@ -6,6 +6,7 @@ import { Delete } from '@element-plus/icons-vue'
 import {
   taskApi,
   type ProjectMember,
+  type VersionSummary,
   type Task,
   type TaskCreate,
   type TaskPriority,
@@ -19,8 +20,10 @@ const props = withDefaults(defineProps<{
   members: ReadonlyArray<ProjectMember>
   task?: Task | null
   initialAssigneeId?: string
+  initialVersionId?: string
+  versions?: ReadonlyArray<VersionSummary>
   readOnly?: boolean
-}>(), { task: null, initialAssigneeId: '', readOnly: false })
+}>(), { task: null, initialAssigneeId: '', initialVersionId: '', versions: () => [], readOnly: false })
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   changed: []
@@ -31,7 +34,7 @@ interface TaskForm {
   assignee_id: string
   status: TaskStatus
   priority: TaskPriority
-  version_id: string | null
+  version_id: string
   start_date: string | null
   due_date: string | null
   description: string
@@ -42,7 +45,7 @@ const emptyForm = (): TaskForm => ({
   assignee_id: '',
   status: 'NOT_STARTED',
   priority: 'P1',
-  version_id: null,
+  version_id: '',
   start_date: null,
   due_date: null,
   description: '',
@@ -76,7 +79,7 @@ const assignTaskToForm = (task: Task) => {
     assignee_id: task.assignee_id,
     status: task.status,
     priority: task.priority,
-    version_id: task.version_id,
+    version_id: task.version_id || '',
     start_date: task.start_date,
     due_date: task.due_date,
     description: task.description,
@@ -86,7 +89,10 @@ const resetFromProps = () => {
   currentTask.value = props.task ? { ...props.task } : null
   Object.assign(form, emptyForm())
   if (props.task) assignTaskToForm(props.task)
-  else form.assignee_id = props.initialAssigneeId
+  else {
+    form.assignee_id = props.initialAssigneeId
+    form.version_id = props.initialVersionId
+  }
   conflictMessage.value = ''
   actionError.value = ''
   deleteVisible.value = false
@@ -130,7 +136,7 @@ const submit = async () => {
       assignee_id: form.assignee_id,
       status: form.status,
       priority: form.priority,
-      version_id: form.version_id,
+      version_id: form.version_id || null,
       start_date: form.start_date,
       due_date: form.due_date,
       description: form.description.trim(),
@@ -257,7 +263,10 @@ watch(() => props.modelValue, (visible) => {
           </el-select>
         </el-form-item>
         <el-form-item label="所属版本（选填）">
-          <el-select :model-value="form.version_id" disabled placeholder="T7 接入版本选择" />
+          <el-select v-model="form.version_id" placeholder="不关联版本" clearable>
+            <el-option label="不关联版本" value="" />
+            <el-option v-for="version in versions" :key="version.id" :label="version.name" :value="version.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="开始日期（选填）">
           <el-date-picker v-model="form.start_date" type="date" value-format="YYYY-MM-DD" placeholder="选择开始日期" />
