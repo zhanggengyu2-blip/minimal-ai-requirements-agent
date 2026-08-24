@@ -28,11 +28,21 @@ export type LoginRequest = components['schemas']['SessionCreateRequest']
 export type RegistrationRequest = components['schemas']['RegistrationRequest']
 export type LoginDepartment = components['schemas']['DepartmentOption']
 export type User = components['schemas']['UserRead']
+export type Task = components['schemas']['TaskRead']
+export type TaskCreate = components['schemas']['TaskCreate']
+export type TaskUpdate = components['schemas']['TaskUpdate']
+export type TaskList = components['schemas']['TaskList']
+export type TaskLaneOrder = components['schemas']['TaskLaneOrderRead']
+export type TaskLaneOrderUpdate = components['schemas']['TaskLaneOrderUpdate']
+export type TaskStatus = components['schemas']['TaskStatus']
+export type TaskStatusFilter = components['schemas']['TaskStatusFilter']
+export type TaskPriority = components['schemas']['TaskPriority']
 export type ProjectListParams = NonNullable<operations['list_projects_api_v1_projects_get']['parameters']['query']>
 export type RequirementListParams = NonNullable<operations['list_requirements_api_v1_requirements_get']['parameters']['query']>
 export type DepartmentListParams = NonNullable<operations['list_departments_api_v1_departments_get']['parameters']['query']>
 export type InvitationListParams = NonNullable<operations['list_invitations_api_v1_invitations_get']['parameters']['query']>
 export type UserListParams = NonNullable<operations['list_users_api_v1_users_get']['parameters']['query']>
+export type TaskListParams = NonNullable<operations['list_tasks_api_v1_projects__project_id__tasks_get']['parameters']['query']>
 
 export interface PageData<T> {
   items: T[]
@@ -110,6 +120,30 @@ export const requirementApi = {
   batchAnalyze: (requirementIds: string[]) =>
     http.post<never, BatchAnalyzeAccepted>('/requirements/batch-analyze', {
       requirement_ids: requirementIds,
+    }),
+}
+
+export const taskApi = {
+  list: (projectId: string, params: TaskListParams = {}) =>
+    http.get<never, TaskList>(`/projects/${projectId}/tasks`, { params }),
+  create: (projectId: string, data: TaskCreate) =>
+    http.post<never, Task>(`/projects/${projectId}/tasks`, data, { skipGlobalError: true }),
+  detail: (projectId: string, taskId: string) =>
+    http.get<never, Task>(`/projects/${projectId}/tasks/${taskId}`, { skipGlobalError: true }),
+  update: (projectId: string, taskId: string, data: TaskUpdate) =>
+    http.patch<never, Task>(`/projects/${projectId}/tasks/${taskId}`, data, { skipGlobalError: true }),
+  delete: (projectId: string, taskId: string, expectedRevision: number) =>
+    http.delete<never, null>(`/projects/${projectId}/tasks/${taskId}`, {
+      params: { expected_revision: expectedRevision },
+      skipGlobalError: true,
+    }),
+  getLaneOrder: (projectId: string, assigneeId: string) =>
+    http.get<never, TaskLaneOrder>(`/projects/${projectId}/task-lanes/${assigneeId}/order`, {
+      skipGlobalError: true,
+    }),
+  reorderLane: (projectId: string, assigneeId: string, data: TaskLaneOrderUpdate) =>
+    http.put<never, TaskLaneOrder>(`/projects/${projectId}/task-lanes/${assigneeId}/order`, data, {
+      skipGlobalError: true,
     }),
 }
 

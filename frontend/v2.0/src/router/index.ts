@@ -42,12 +42,8 @@ export const router = createRouter({
         {
           path: 'projects/:projectId/tasks/board',
           name: 'project-task-board',
-          component: () => import('../views/ModulePlaceholder.vue'),
-          meta: {
-            projectRoute: true,
-            placeholderTitle: '团队任务面板',
-            placeholderDescription: '路由与鉴权基础已完成，正式任务面板将在 T5 按冻结设计实现。',
-          },
+          component: () => import('../views/TeamTaskBoard.vue'),
+          meta: { projectRoute: true },
         },
         {
           path: 'projects/:projectId/tasks/gantt',
