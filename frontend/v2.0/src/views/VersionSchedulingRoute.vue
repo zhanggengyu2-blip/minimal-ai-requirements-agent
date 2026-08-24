@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Calendar, EditPen, Plus, Search, User } from '@element-plus/icons-vue'
 import TaskDialog from '../components/TaskDialog.vue'
 import VersionDialog from '../components/VersionDialog.vue'
+import GanttShell from '../components/GanttShell.vue'
 import {
   taskApi,
   versionApi,
@@ -18,12 +19,15 @@ import {
 } from '../api'
 import { ApiRequestError } from '../api/http'
 import { useProjectAccess } from '../composables/useProjectAccess'
+import { useVersionModuleState } from '../composables/useTaskModuleState'
 
 const route = useRoute()
 const router = useRouter()
 const access = useProjectAccess()
+const moduleState = useVersionModuleState()
 const projectId = computed(() => String(route.params.projectId || ''))
 const routeVersionId = computed(() => String(route.params.versionId || ''))
+const isGantt = computed(() => route.name === 'project-version-gantt')
 const projectName = computed(() => access.project.value?.name || '当前项目')
 const projectMembers = computed(() => access.members.value?.items || [])
 const loading = ref(true)
@@ -32,8 +36,7 @@ const versions = ref<VersionSummary[]>([])
 const currentVersion = ref<ProjectVersion | null>(null)
 const tasks = ref<Task[]>([])
 const total = ref(0)
-const keyword = ref('')
-const status = ref<TaskStatusFilter>('ALL')
+const { keyword, status, scale } = moduleState
 const versionDialogVisible = ref(false)
 const editingVersion = ref<ProjectVersion | null>(null)
 const taskDialogVisible = ref(false)
@@ -73,10 +76,8 @@ const groupedTasks = computed(() => {
   tasks.value.forEach((task) => groups.get(task.assignee_id)?.push(task))
   return groups
 })
-const ganttQuery = computed(() => ({
-  ...(keyword.value.trim() ? { keyword: keyword.value.trim() } : {}),
-  ...(status.value !== 'ALL' ? { status: status.value } : {}),
-}))
+const versionNames = computed(() => new Map(versions.value.map((version) => [version.id, version.name])))
+const activeVersionRouteName = () => isGantt.value ? 'project-version-gantt' : 'project-version-list'
 
 const describeError = (error: unknown, fallback: string) =>
   error instanceof ApiRequestError ? error.message : fallback
@@ -110,6 +111,7 @@ const loadCurrent = async (versionId: string) => {
   }
 }
 const initialize = async () => {
+  moduleState.ensureProject(projectId.value)
   const sequence = ++loadSequence
   loading.value = true
   loadError.value = ''
@@ -129,7 +131,8 @@ const initialize = async () => {
     const selectedId = items.some((item) => item.id === routeVersionId.value)
       ? routeVersionId.value
       : items[0].id
-    if (routeVersionId.value !== selectedId || route.name !== 'project-version-list') {
+    const isVersionView = ['project-version-list', 'project-version-gantt'].includes(String(route.name || ''))
+    if (routeVersionId.value !== selectedId || !isVersionView) {
       await router.replace({ name: 'project-version-list', params: { projectId: projectId.value, versionId: selectedId } })
       return
     }
@@ -168,7 +171,7 @@ const delayedSearch = () => {
 }
 const switchVersion = (versionId: string) => {
   if (!versionId || versionId === currentVersion.value?.id) return
-  void router.push({ name: 'project-version-list', params: { projectId: projectId.value, versionId } })
+  void router.push({ name: activeVersionRouteName(), params: { projectId: projectId.value, versionId } })
 }
 const openCreateVersion = () => {
   if (access.readOnly.value) return
@@ -183,7 +186,7 @@ const openEditVersion = () => {
 const afterVersionSaved = async (saved: ProjectVersion) => {
   await loadVersionList()
   if (routeVersionId.value !== saved.id) {
-    await router.replace({ name: 'project-version-list', params: { projectId: projectId.value, versionId: saved.id } })
+    await router.replace({ name: activeVersionRouteName(), params: { projectId: projectId.value, versionId: saved.id } })
   } else {
     await loadCurrent(saved.id)
   }
@@ -270,7 +273,7 @@ const confirmDelete = async () => {
     await loadVersionList()
     ElMessage.success(`版本已删除，${result.unlinked_task_count} 条任务已解除版本关联`)
     if (result.next_version_id) {
-      await router.replace({ name: 'project-version-list', params: { projectId: projectId.value, versionId: result.next_version_id } })
+      await router.replace({ name: activeVersionRouteName(), params: { projectId: projectId.value, versionId: result.next_version_id } })
     } else {
       currentVersion.value = null
       tasks.value = []
@@ -288,6 +291,11 @@ const confirmDelete = async () => {
 watch([projectId, routeVersionId], () => void initialize(), { immediate: true })
 watch(status, () => void loadTasks())
 onBeforeUnmount(() => clearTimeout(searchTimer))
+onBeforeRouteLeave((to) => {
+  const staysInModule = ['project-versions', 'project-version-list', 'project-version-gantt'].includes(String(to.name || ''))
+    && String(to.params.projectId || '') === projectId.value
+  if (!staysInModule) moduleState.reset()
+})
 </script>
 
 <template>
@@ -318,8 +326,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
     </section>
     <template v-else>
       <nav class="version-view-tabs" aria-label="版本排期视图">
-        <RouterLink :to="{ name: 'project-version-list', params: { projectId, versionId: currentVersion.id } }" class="active">排期列表</RouterLink>
-        <RouterLink :to="{ name: 'project-version-gantt', params: { projectId, versionId: currentVersion.id }, query: ganttQuery }">甘特图</RouterLink>
+        <RouterLink :to="{ name: 'project-version-list', params: { projectId, versionId: currentVersion.id } }" :class="{ active: !isGantt }">排期列表</RouterLink>
+        <RouterLink :to="{ name: 'project-version-gantt', params: { projectId, versionId: currentVersion.id } }" :class="{ active: isGantt }">甘特图</RouterLink>
       </nav>
 
       <section class="version-summary-bar">
@@ -356,7 +364,19 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
         <span>当前筛选共 {{ total }} 条任务</span>
       </div>
 
-      <div v-loading="loading" class="version-schedule-list">
+      <GanttShell
+        v-if="isGantt"
+        v-model:scale="scale"
+        :members="currentVersion.participants"
+        :tasks="tasks"
+        :version-names="versionNames"
+        :reference-start="currentVersion.start_date"
+        :reference-end="currentVersion.end_date"
+        :loading="loading"
+        @open="openTask"
+      />
+
+      <div v-else v-loading="loading" class="version-schedule-list">
         <section v-for="participant in currentVersion.participants" :key="participant.user_id" class="version-schedule-card">
           <header class="version-participant-panel">
             <span class="version-member-avatar large">{{ participant.name.slice(0, 1) }}</span>

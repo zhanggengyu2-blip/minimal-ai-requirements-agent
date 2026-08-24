@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, Search, User } from '@element-plus/icons-vue'
 import TaskCard from '../components/TaskCard.vue'
@@ -15,10 +15,12 @@ import {
 } from '../api'
 import { ApiRequestError } from '../api/http'
 import { useProjectAccess } from '../composables/useProjectAccess'
+import { useTeamTaskModuleState } from '../composables/useTaskModuleState'
 import { mergeVisibleTaskOrder, reorderVisibleIds } from '../utils/taskBoard'
 
 const route = useRoute()
 const access = useProjectAccess()
+const moduleState = useTeamTaskModuleState()
 const projectId = computed(() => String(route.params.projectId || ''))
 const projectName = computed(() => access.project.value?.name || '当前项目')
 const members = computed(() => access.members.value?.items || [])
@@ -26,8 +28,7 @@ const loading = ref(false)
 const tasks = ref<Task[]>([])
 const versions = ref<VersionSummary[]>([])
 const total = ref(0)
-const keyword = ref('')
-const status = ref<TaskStatusFilter>('UNFINISHED')
+const { keyword, status } = moduleState
 const dialogVisible = ref(false)
 const selectedTask = ref<Task | null>(null)
 const initialAssigneeId = ref('')
@@ -153,6 +154,7 @@ const dropOn = async (member: ProjectMember, target: Task) => {
 }
 
 const initialize = async () => {
+  moduleState.ensureProject(projectId.value)
   if (!access.project.value || access.project.value.id !== projectId.value) {
     await access.loadProjectAccess(projectId.value)
   }
@@ -167,6 +169,11 @@ watch(projectId, () => void initialize())
 watch(status, () => void load())
 onMounted(initialize)
 onBeforeUnmount(() => clearTimeout(searchTimer))
+onBeforeRouteLeave((to) => {
+  const staysInModule = ['project-task-board', 'project-task-gantt'].includes(String(to.name || ''))
+    && String(to.params.projectId || '') === projectId.value
+  if (!staysInModule) moduleState.reset()
+})
 </script>
 
 <template>

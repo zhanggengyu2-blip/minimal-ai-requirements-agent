@@ -9,6 +9,10 @@ class ResizeObserverStub {
 vi.stubGlobal('ResizeObserver', ResizeObserverStub)
 vi.stubGlobal('scrollTo', vi.fn())
 
+if (!HTMLElement.prototype.scrollBy) {
+  HTMLElement.prototype.scrollBy = vi.fn()
+}
+
 if (!globalThis.crypto.randomUUID) {
   Object.defineProperty(globalThis.crypto, 'randomUUID', {
     configurable: true,

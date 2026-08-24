@@ -48,12 +48,8 @@ export const router = createRouter({
         {
           path: 'projects/:projectId/tasks/gantt',
           name: 'project-task-gantt',
-          component: () => import('../views/ModulePlaceholder.vue'),
-          meta: {
-            projectRoute: true,
-            placeholderTitle: '团队任务甘特图',
-            placeholderDescription: '甘特页面路由已建立，正式只读甘特将在 T8 实现。',
-          },
+          component: () => import('../views/TeamTaskGantt.vue'),
+          meta: { projectRoute: true },
         },
         {
           path: 'projects/:projectId/versions',
@@ -70,12 +66,8 @@ export const router = createRouter({
         {
           path: 'projects/:projectId/versions/:versionId/gantt',
           name: 'project-version-gantt',
-          component: () => import('../views/ModulePlaceholder.vue'),
-          meta: {
-            projectRoute: true,
-            placeholderTitle: '版本排期甘特图',
-            placeholderDescription: '版本甘特路由已就绪，正式页面将在 T8 实现。',
-          },
+          component: () => import('../views/VersionSchedulingRoute.vue'),
+          meta: { projectRoute: true },
         },
         {
           path: 'admin/departments',

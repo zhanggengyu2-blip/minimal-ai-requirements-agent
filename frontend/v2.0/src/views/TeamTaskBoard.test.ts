@@ -1,7 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
-import { createMemoryHistory, createRouter } from 'vue-router'
-import { describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useTeamTaskModuleState } from '../composables/useTaskModuleState'
 import TeamTaskBoard from './TeamTaskBoard.vue'
 
 const mocks = vi.hoisted(() => ({
@@ -40,6 +41,11 @@ vi.mock('../composables/useProjectAccess', async () => {
 })
 
 describe('TeamTaskBoard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useTeamTaskModuleState().reset()
+  })
+
   it('loads unfinished tasks by default and keeps zero-task members visible', async () => {
     mocks.listVersions.mockResolvedValue({ items: [], total: 0 })
     mocks.list.mockResolvedValue({
@@ -64,7 +70,7 @@ describe('TeamTaskBoard', () => {
     })
     await router.push(`/projects/${'p'.repeat(32)}/tasks/board`)
     await router.isReady()
-    const wrapper = mount(TeamTaskBoard, {
+    const wrapper = mount(RouterView, {
       global: {
         plugins: [ElementPlus, router],
         stubs: { TaskDialog: true },

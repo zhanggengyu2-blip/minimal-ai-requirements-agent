@@ -1,7 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useVersionModuleState } from '../composables/useTaskModuleState'
 import VersionSchedulingRoute from './VersionSchedulingRoute.vue'
 
 const projectId = 'p'.repeat(32)
@@ -52,12 +53,13 @@ const makeRouter = () => createRouter({
   routes: [
     { path: '/projects/:projectId/versions', name: 'project-versions', component: VersionSchedulingRoute },
     { path: '/projects/:projectId/versions/:versionId/list', name: 'project-version-list', component: VersionSchedulingRoute },
-    { path: '/projects/:projectId/versions/:versionId/gantt', name: 'project-version-gantt', component: { template: '<div />' } },
+    { path: '/projects/:projectId/versions/:versionId/gantt', name: 'project-version-gantt', component: VersionSchedulingRoute },
   ],
 })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  useVersionModuleState().reset()
   mocks.listTasks.mockResolvedValue({ items: [], total: 0, lanes: [] })
 })
 
@@ -67,7 +69,7 @@ describe('VersionSchedulingRoute', () => {
     const router = makeRouter()
     await router.push(`/projects/${projectId}/versions`)
     await router.isReady()
-    const wrapper = mount(VersionSchedulingRoute, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
+    const wrapper = mount(RouterView, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
     await flushPromises()
 
     expect(wrapper.text()).toContain('还没有版本排期')
@@ -81,7 +83,7 @@ describe('VersionSchedulingRoute', () => {
     const router = makeRouter()
     await router.push(`/projects/${projectId}/versions/${versionId}/list`)
     await router.isReady()
-    const wrapper = mount(VersionSchedulingRoute, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
+    const wrapper = mount(RouterView, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
     await flushPromises()
 
     expect(mocks.listTasks).toHaveBeenCalledWith(projectId, { version_id: versionId, keyword: undefined, status: 'ALL' })
@@ -91,6 +93,42 @@ describe('VersionSchedulingRoute', () => {
     expect(wrapper.text()).toContain('添加任务')
   })
 
+  it('直接打开版本甘特图时保持该视图，且仅完整日期任务有任务条', async () => {
+    mocks.listVersions.mockResolvedValue({ items: [summary], total: 1 })
+    mocks.detailVersion.mockResolvedValue({ ...detail, task_count: 2 })
+    mocks.listTasks.mockResolvedValue({
+      total: 2,
+      lanes: [],
+      items: [
+        {
+          id: '1'.repeat(32), project_id: projectId, assignee_id: userId, version_id: versionId,
+          name: '完整日期任务', description: '', status: 'IN_PROGRESS', priority: 'P1',
+          start_date: '2026-08-20', due_date: '2026-08-22', sort_order: 1, revision: 1,
+          created_by: userId, updated_by: userId,
+          created_time: '2026-08-20T00:00:00Z', updated_time: '2026-08-20T00:00:00Z',
+        },
+        {
+          id: '2'.repeat(32), project_id: projectId, assignee_id: userId, version_id: versionId,
+          name: '缺少开始日期', description: '', status: 'NOT_STARTED', priority: 'P2',
+          start_date: null, due_date: '2026-08-25', sort_order: 2, revision: 1,
+          created_by: userId, updated_by: userId,
+          created_time: '2026-08-20T00:00:00Z', updated_time: '2026-08-20T00:00:00Z',
+        },
+      ],
+    })
+    const router = makeRouter()
+    await router.push(`/projects/${projectId}/versions/${versionId}/gantt`)
+    await router.isReady()
+    const wrapper = mount(RouterView, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('project-version-gantt')
+    expect(mocks.listTasks).toHaveBeenCalledWith(projectId, { version_id: versionId, keyword: undefined, status: 'ALL' })
+    expect(wrapper.text()).toContain('完整日期任务')
+    expect(wrapper.text()).toContain('缺少开始日期')
+    expect(wrapper.findAll('.gantt-task-bar')).toHaveLength(1)
+  })
+
   it('shows unfinished impact before completing a version', async () => {
     mocks.listVersions.mockResolvedValue({ items: [summary], total: 1 })
     mocks.detailVersion.mockResolvedValue({ ...detail, task_count: 3, unfinished_task_count: 2 })
@@ -98,9 +136,9 @@ describe('VersionSchedulingRoute', () => {
     const router = makeRouter()
     await router.push(`/projects/${projectId}/versions/${versionId}/list`)
     await router.isReady()
-    const wrapper = mount(VersionSchedulingRoute, { attachTo: document.body, global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
+    const wrapper = mount(RouterView, { attachTo: document.body, global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
     await flushPromises()
-    const vm = wrapper.vm as unknown as { requestStatusChange: (status: 'COMPLETED') => Promise<void> }
+    const vm = wrapper.findComponent(VersionSchedulingRoute).vm as unknown as { requestStatusChange: (status: 'COMPLETED') => Promise<void> }
     await vm.requestStatusChange('COMPLETED')
     await flushPromises()
 
@@ -120,9 +158,9 @@ describe('VersionSchedulingRoute', () => {
     const router = makeRouter()
     await router.push(`/projects/${projectId}/versions/${versionId}/list`)
     await router.isReady()
-    const wrapper = mount(VersionSchedulingRoute, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
+    const wrapper = mount(RouterView, { global: { plugins: [ElementPlus, router], stubs: { VersionDialog: true, TaskDialog: true } } })
     await flushPromises()
-    const vm = wrapper.vm as unknown as { confirmDelete: () => Promise<void> }
+    const vm = wrapper.findComponent(VersionSchedulingRoute).vm as unknown as { confirmDelete: () => Promise<void> }
     await vm.confirmDelete()
     await flushPromises()
 
