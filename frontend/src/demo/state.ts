@@ -16,9 +16,9 @@ export const nowLabel = () => new Date().toLocaleTimeString('zh-CN', { timeZone:
 let nextId = 100
 export const demoId = (prefix: string) => `${prefix}-${++nextId}`
 
-export function createDemoRun(kind: 'investigate' | 'knowledge' | 'comment' | 'status', goal: string, origin: DemoRun['origin'] = '员工对话', order = 'DEMO-0846'): DemoRun {
+export function createDemoRun(kind: 'investigate' | 'knowledge' | 'comment' | 'status', goal: string, origin: DemoRun['origin'] = '员工对话', order = 'OD-0846'): DemoRun {
   const task = { kind: 'task', status: 'pending', title: '调查订单超时未发货原因', assignee: '王磊', content: `核实订单 ${order} 在杭州一号仓的库存与拣货状态，确认预计处理时间，并在任务留言中同步进展。`, taskId: null, due: '2026-10-30', taskStatus: '未开始' } satisfies DemoProposal
-  const proposal: DemoProposal | null = kind === 'knowledge' ? null : kind === 'comment' ? { ...task, kind: 'comment', title: '向仓储跟进任务留言', content: '请确认订单 DEMO-0846 的库存与拣货情况，有进展后在这里同步。', taskId: 'TASK-1024' } : kind === 'status' ? { ...task, kind: 'status', title: '更新仓储调查任务状态', taskId: 'TASK-1024', taskStatus: '进行中' } : task
+  const proposal: DemoProposal | null = kind === 'knowledge' ? null : kind === 'comment' ? { ...task, kind: 'comment', title: '向仓储跟进任务留言', content: '请确认订单 OD-0846 的库存与拣货情况，有进展后在这里同步。', taskId: 'TASK-1024' } : kind === 'status' ? { ...task, kind: 'status', title: '更新仓储调查任务状态', taskId: 'TASK-1024', taskStatus: '进行中' } : task
   return {
     id: demoId('RUN'), goal, origin, status: 'running', time: nowLabel(), sourceId: 'KB-001', proposal,
     answer: kind === 'knowledge' ? '根据《订单超时未发货处理规范》，已付款超过 48 小时仍未发货时，应先联系仓储核实库存与拣货状态，并记录处理进展。在原因确认前，不向客户承诺具体发货时间。' : kind === 'comment' ? '已查看任务和最近留言。仓储正在核查拣货情况，我整理了一条跟进留言，确认后将以 Coo 的 AI 身份显示在任务中。' : kind === 'status' ? '任务已经有明确负责人，并开始核查仓储情况。建议把状态更新为「进行中」，方便团队在看板和版本中同步跟进。' : `订单 ${order} 已付款 72 小时，超过规范中的 48 小时跟进阈值。当前还缺少仓储侧的原因反馈。\n\n建议由王磊核实库存与拣货情况，并在明天前同步处理结论。我已准备好跟进任务，确认后会出现在团队任务中。`,
@@ -57,7 +57,7 @@ export function createDemoState(): DemoState {
       { id: 'REQ-1043', title: '一键生成每周异常复盘', raw: '每周汇总异常订单和处理情况，生成一份复盘材料。', status: '待分析', priority: '待评估', type: '待分析', goal: '', summary: '' },
     ],
     runs: [first],
-    events: [{ id: 'EVT-001', order: 'DEMO-0846', title: '订单超时未发货', status: '待处理', runId: null, time: '09:38' }],
+    events: [{ id: 'EVT-001', order: 'OD-0846', title: '订单超时未发货', status: '待处理', runId: null, time: '09:38' }],
   }
 }
 

@@ -45,3 +45,7 @@ pnpm --dir frontend demo
 ![本地任务留言](screenshots/frontend-demo/task.png)
 
 ![本地任务看板](screenshots/frontend-demo/board.png)
+
+## 可读性调整
+
+2026-10-29：正文调整为约 16px，表单/按钮约 15px，辅助信息最低 13px；加深文字与状态色，删除非必要微型说明，界面文案按正常产品页面呈现。底层仍是本地内存状态，不调用业务或模型接口。浏览器检查覆盖全部导航页、任务与知识弹窗、重置和窄窗口布局，同时断言相关提示文案不再出现在界面。
