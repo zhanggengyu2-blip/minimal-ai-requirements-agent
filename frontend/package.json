@@ -10,7 +10,8 @@
     "generate:api": "openapi-typescript ../backend/app/openapi.json -o ./src/api/generated.ts",
     "test": "vitest run --config vite.config.ts",
     "test:watch": "vitest --config vite.config.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo": "vite --config vite.config.ts --host 127.0.0.1 --port 3000 --open /demo"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

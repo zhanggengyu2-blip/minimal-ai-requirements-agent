@@ -9,6 +9,7 @@ import { useProjectAccess } from '../composables/useProjectAccess'
 
 declare module 'vue-router' {
   interface RouteMeta {
+    localDemo?: boolean
     requiresAuth?: boolean
     guestOnly?: boolean
     adminOnly?: boolean
@@ -38,6 +39,8 @@ export const routeAccessDecision = (
 
 export const installRouteGuards = (router: Router) => {
   router.beforeEach(async (to) => {
+    // Only the isolated fixture view bypasses session loading; protected business routes keep their guards.
+    if (to.meta.localDemo) return true
     const auth = useCurrentUser()
     let user: CurrentUser | null
     try {

@@ -4,6 +4,7 @@ import { installRouteGuards } from './guards'
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: '/demo', name: 'frontend-demo', component: () => import('../demo/FrontendDemo.vue'), meta: { localDemo: true } },
     {
       path: '/login',
       name: 'login',

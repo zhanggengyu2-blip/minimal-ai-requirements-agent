@@ -4,6 +4,10 @@
 
 当前实际目录为 `backend/app` 与 `frontend/src`。不需要 Dify、Docker、Redis、Celery、OpenSearch。访谈入口与 API 已下线，源码、历史表和迁移保留。
 
+## 先看纯前端交互演示
+
+仅运行 `pnpm --dir frontend demo`，打开 [交互演示](http://127.0.0.1:3000/demo)。无需登录、后端或模型配置，全部使用本地假数据，支持 Coo 建议确认、任务留言/回复、需求、知识、排期与主动事件的点击体验。刷新或重置即恢复初始样例。它是独立 UI 演示入口，正式 Coo Runtime 仍需真实模型配置。[演示说明](docs/v4/FRONTEND_DEMO.md)。
+
 ## 启动
 
 Python 3.12、Node.js 24 与 pnpm 11。后端依赖沿用现有项目，未引入 Agent 框架。
