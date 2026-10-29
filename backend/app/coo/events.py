@@ -1,4 +1,5 @@
 """Durable business outbox. Insertion shares the originating business transaction."""
+from datetime import datetime, timezone
 from sqlalchemy import select, update
 from sqlalchemy.dialects.sqlite import insert
 from app.core.exceptions import ConflictError, NotFoundError
@@ -33,7 +34,7 @@ class EventService:
         ProjectService(self.db).get_visible(event.project_id,actor=self.actor)
         return event
 
-    def view(self,event):return {c.name:getattr(event,c.name) for c in event.__table__.columns if c.name!='claim_token'}
+    def view(self,event):return {c.name:(getattr(event,c.name).replace(tzinfo=timezone.utc) if isinstance(getattr(event,c.name),datetime) else getattr(event,c.name)) for c in event.__table__.columns if c.name!='claim_token'}
 
     def list(self):
         rows=self.db.scalars(select(BusinessEvent).where(BusinessEvent.actor_id==self.actor.id).order_by(BusinessEvent.created_time.desc()).limit(100)).all()

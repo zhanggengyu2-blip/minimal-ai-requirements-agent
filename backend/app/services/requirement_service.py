@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from sqlalchemy import func, or_, select
+from datetime import datetime, timezone, timedelta
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.exceptions import AppError, NotFoundError
+from app.core.exceptions import AppError, NotFoundError, ConflictError
 from app.db.models import (
     AnalysisStatus,
     Project,
@@ -22,15 +23,15 @@ from pydantic import ValidationError
 
 
 class RequirementService:
-    def __init__(self, db: Session, dify=None) -> None:
+    def __init__(self, db: Session, analyzer=None, *, dify=None) -> None:
         self.db = db
-        self.dify = dify or RequirementAnalysisWorkflow(db)
+        self.analyzer = analyzer or dify or RequirementAnalysisWorkflow(db)
         self.settings = get_settings()
 
     def create(
         self, payload: RequirementCreate, *, created_by: str
     ) -> Requirement:
-        """先保存需求；仅显式开启 AI 时进入等待分析状态，不在此调用 Dify。"""
+        """先保存需求；仅显式开启 AI 时进入等待分析状态，不在此调用模型。"""
         project = self.db.get(Project, payload.project_id)
         if project is None:
             raise NotFoundError("项目不存在")
@@ -97,43 +98,43 @@ class RequirementService:
         )
 
     async def analyze_existing(self, requirement: Requirement, *, user: str) -> Requirement:
-        """
-        Responsibility：
-            分析已有需求，将分析结果或已捕获的分析错误写回该需求。
-        Input：
-            待分析的需求对象和传给 Dify 的用户标识；优先使用澄清内容，否则使用原始内容。
-        Process：
-            确认项目存在，清除错误并提交 ANALYZING，查询候选需求后等待 DifyService 返回。
-            成功时写回分析字段、转换类型和优先级枚举、记录 Workflow 运行 ID，并提交 ANALYZED。
-        Output：
-            返回提交并刷新后的同一 Requirement ORM 对象；正常返回的状态可能是 ANALYZED 或 FAILED。
-        Dependency：
-            直接使用数据库 Session、候选查询方法和 DifyService；外部 HTTP 调用及 Pydantic 校验由 DifyService 完成。
-        Side Effect：
-            分阶段提交需求状态、分析字段或错误信息，并经 DifyService 调用外部 Workflow。
-        Error：
-            DifyService 调用期间的 AppError 会转为 FAILED，保存错误码及信息后返回，不重新抛出。
-            项目不存在时抛出 NotFoundError；候选查询、结果写回及其他未捕获异常继续向上抛出。
+        """保存分析中状态，调用共用 Coo 工作流，校验十字段与候选范围后持久化。
+
+        模型失败时仅标记 FAILED，保留原始输入。默认适配器在分析前后重验成员写权限；
+        并发请求通过状态条件更新互斥，超过运行时限的中断分析可以重新启动。
         """
         project = self.db.get(Project, requirement.project_id)
         if project is None:
             raise NotFoundError("项目不存在")
 
-        requirement.analysis_status = AnalysisStatus.ANALYZING
-        requirement.analysis_error_code = None
-        requirement.analysis_error_message = None
+        if isinstance(self.analyzer, RequirementAnalysisWorkflow):
+            from app.services.project_service import ProjectService
+            actor = self.db.get(UserAccount, user, populate_existing=True)
+            if not actor: raise NotFoundError("分析员工不存在")
+            ProjectService(self.db).require_writable(project.id, actor=actor)
+        stale_before = datetime.now(timezone.utc) - timedelta(seconds=self.settings.coo_run_timeout_seconds+30)
+        claimed = self.db.execute(update(Requirement).where(Requirement.id==requirement.id,
+            or_(Requirement.analysis_status!=AnalysisStatus.ANALYZING, Requirement.updated_time<stale_before))
+            .values(analysis_status=AnalysisStatus.ANALYZING, analysis_error_code=None, analysis_error_message=None))
+        if claimed.rowcount!=1:
+            self.db.rollback()
+            raise ConflictError("该需求正在分析，请稍后刷新")
         self.db.commit()
 
         candidates = self._candidate_requirements(project.id, exclude_id=requirement.id)
         try:
-            result = await self.dify.analyze_requirement(
+            result = await self.analyzer.analyze_requirement(
                 project_name=project.name,
                 project_context=project.project_context,
                 raw_content=requirement.clarified_content or requirement.raw_content,
                 candidates=candidates,
                 user=user,
-                **({"project_id": project.id, "requirement_id": requirement.id} if isinstance(self.dify, RequirementAnalysisWorkflow) else {}),
+                **({"project_id": project.id, "requirement_id": requirement.id} if isinstance(self.analyzer, RequirementAnalysisWorkflow) else {}),
             )
+            if isinstance(self.analyzer, RequirementAnalysisWorkflow):
+                self.db.expire_all()
+                actor = self.db.get(UserAccount, user, populate_existing=True)
+                ProjectService(self.db).require_writable(project.id, actor=actor)
             validated = AnalysisResult.model_validate(result.analysis.model_dump())
             if validated.is_duplicate and validated.related_id not in {item["id"] for item in candidates}:
                 raise AppError("关联需求不属于当前项目候选范围", code="COO_ANALYSIS_INVALID", status_code=422)
@@ -244,7 +245,7 @@ class RequirementService:
         Responsibility：
             为需求分析读取同项目的候选需求，排除当前需求。
         Process：
-            仅选取 ANALYZED 且标准内容非 NULL 的记录，按更新时间倒序读取，数量受 dify_candidate_limit 限制。
+            仅选取 ANALYZED 且标准内容非 NULL 的记录，按更新时间倒序读取，数量受 coo_candidate_limit 限制。
         Output：
             返回仅包含 id 和 standard_content 的字典列表；上限为 0 时直接返回空列表。
         Dependency：

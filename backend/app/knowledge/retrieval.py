@@ -22,6 +22,7 @@ def search(db, actor, body):
     lexical=sorted([(c,sum(c['content'].lower().count(t) for t in terms)) for c in chunks],key=lambda r:r[1],reverse=True)
     lexical=[c for c,score in lexical if score>0][:30]
     vectors=[];warnings=[]
+    if any(c['space']!=providers.space() for c in chunks):warnings.append('向量模型配置已变化，旧知识需重新发布以恢复向量召回；关键词检索仍可用')
     if chunks:
         try:
             q=providers.embed([body.query])[0];norm=math.sqrt(sum(x*x for x in q))

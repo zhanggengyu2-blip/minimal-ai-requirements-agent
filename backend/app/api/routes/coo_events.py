@@ -23,6 +23,6 @@ def runs(db:DbSession,actor:AuthenticatedUser):
     rows=db.scalars(select(AgentRun).where(AgentRun.owner_id==actor.id).order_by(AgentRun.created_time.desc()).limit(50)).all()
     result=[];service=CooService(db,actor)
     for row in rows:
-        try:result.append(service.run_view(row))
+        try:result.append(service.run_summary(row))
         except NotFoundError:continue
     return ApiResponse(data=result)

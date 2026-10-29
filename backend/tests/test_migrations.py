@@ -129,3 +129,37 @@ def test_sqlite_runtime_pragmas_are_enabled() -> None:
         assert connection.exec_driver_sql("PRAGMA journal_mode").scalar_one().lower() == "wal"
         assert connection.exec_driver_sql("PRAGMA synchronous").scalar_one() == 1
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+
+def test_v4_upgrade_preserves_existing_business_and_interview_tables(tmp_path):
+    from sqlalchemy import inspect
+    database_url=f"sqlite:///{tmp_path/'v3-to-v4.db'}"
+    config=build_alembic_config(database_url)
+    command.upgrade(config,'0006_project_versions')
+    old_engine=create_engine(database_url)
+    with old_engine.begin() as connection:
+        connection.execute(text("INSERT INTO department (id,name,created_time,updated_time) VALUES (:id,:name,:created,:created)"),{'id':'e'*32,'name':'已有部门','created':'2026-01-01 00:00:00'})
+    command.upgrade(config,'head');command.upgrade(config,'head')
+    with old_engine.connect() as connection:
+        assert connection.scalar(text('SELECT name FROM department WHERE id=:id'),{'id':'e'*32})=='已有部门'
+        assert {'interview_session','task_comment','knowledge_chunk','coo_business_event'}<=set(inspect(connection).get_table_names())
+        assert connection.exec_driver_sql('PRAGMA foreign_key_check').all()==[]
+    old_engine.dispose()
+
+def test_publish_metadata_downgrade_preserves_published_chunks(tmp_path):
+    from sqlalchemy.orm import Session
+    from app.db.models import UserAccount,UserRole
+    from app.knowledge.models import KnowledgeCategory,KnowledgeDocument,KnowledgeVersion,KnowledgeChunk
+    url=f"sqlite:///{tmp_path/'publish-metadata.db'}";config=build_alembic_config(url)
+    command.upgrade(config,'head');local_engine=create_engine(url)
+    with Session(local_engine) as db:
+        department=Department(name='回退检查');db.add(department);db.flush()
+        user=UserAccount(name='测试成员',normalized_name='测试成员',department_id=department.id,role=UserRole.MEMBER);db.add(user);db.flush()
+        category=KnowledgeCategory(name='公开规范',scope='ENTERPRISE',created_by=user.id);db.add(category);db.flush()
+        doc=KnowledgeDocument(title='已发布政策',category_id=category.id,created_by=user.id);db.add(doc);db.flush()
+        version=KnowledgeVersion(document_id=doc.id,version=1,status='PUBLISHED',content='保留正文',settings={});db.add(version);db.flush()
+        chunk=KnowledgeChunk(version_id=version.id,ordinal=0,content='保留片段',embedding=[1.,0.]);db.add(chunk);db.commit()
+    command.downgrade(config,'0010_coo_events')
+    with local_engine.connect() as connection:
+        assert connection.scalar(text('SELECT content FROM knowledge_chunk'))=='保留片段'
+        assert connection.scalar(text('SELECT content FROM knowledge_version'))=='保留正文'
+    command.upgrade(config,'head');local_engine.dispose()

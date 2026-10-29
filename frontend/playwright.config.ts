@@ -10,6 +10,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:3000',
     trace: 'retain-on-failure',
+    locale: 'zh-CN',
+    timezoneId: 'Asia/Shanghai',
     screenshot: 'only-on-failure',
     video: 'off',
     viewport: { width: 1280, height: 900 },

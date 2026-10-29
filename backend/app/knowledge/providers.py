@@ -53,10 +53,13 @@ def embed(texts):
 def rerank(query, documents):
     s=get_settings()
     if not s.knowledge_rerank_model or not s.knowledge_rerank_api_key: return None
-    data=post(s.knowledge_rerank_base_url,'/rerank',s.knowledge_rerank_api_key,
-              {'model':s.knowledge_rerank_model,'query':query,'documents':documents,'top_n':len(documents)})
+    native=s.knowledge_rerank_format=='dashscope'
+    payload=({'model':s.knowledge_rerank_model,'input':{'query':query,'documents':documents},'parameters':{'top_n':len(documents)}}
+        if native else {'model':s.knowledge_rerank_model,'query':query,'documents':documents,'top_n':len(documents)})
+    path='/api/v1/services/rerank/text-rerank/text-rerank' if native else '/rerank'
+    data=post(s.knowledge_rerank_base_url,path,s.knowledge_rerank_api_key,payload)
     try:
-        rows=data['results']; indices=[r['index'] for r in rows]
+        rows=data['output']['results'] if native else data['results']; indices=[r['index'] for r in rows]
         if len(rows)!=len(documents) or len(set(indices))!=len(indices) or any(type(i) is not int or not 0<=i<len(documents) for i in indices): raise ValueError()
         if any(type(r['relevance_score']) not in (float,int) or not math.isfinite(r['relevance_score']) or not 0<=r['relevance_score']<=1 for r in rows): raise ValueError()
         return sorted(rows,key=lambda r:r['relevance_score'],reverse=True)

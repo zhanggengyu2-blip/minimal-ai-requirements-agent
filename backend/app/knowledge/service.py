@@ -1,4 +1,5 @@
 """Scoped lifecycle adapted from foundation/knowledge.py. Apache-2.0."""
+import time
 from datetime import datetime, timezone
 from sqlalchemy import select, update, or_
 from app.core.exceptions import AppError, ConflictError, NotFoundError, PermissionDeniedError
@@ -70,7 +71,7 @@ class KnowledgeService:
             'state':'已停用' if not doc.enabled else '已发布' if active else '未生效或已失效'}
         def view_version(v):
             row={'id':v.id,'version':v.version,'status':v.status,'error':v.error,'settings':v.settings,
-                 'effective_from':iso(v.effective_from),'effective_until':iso(v.effective_until),'created_time':iso(v.created_time)}
+                 'effective_from':iso(v.effective_from),'effective_until':iso(v.effective_until),'created_time':iso(v.created_time),'published_time':iso(v.published_time)}
             if detail: row['content']=v.content
             return row
         result['versions']=[view_version(v) for v in versions]
@@ -89,7 +90,7 @@ class KnowledgeService:
     def _no_processing(self, doc):
         processing=self.db.scalar(select(Version).where(Version.document_id==doc.id,Version.status=='PROCESSING'))
         if processing:
-            if (now()-processing.created_time).total_seconds()>600:
+            if (now()-(processing.processing_started_time or processing.created_time).replace(tzinfo=None)).total_seconds()>180:
                 processing.status='FAILED';processing.error='发布进程中断，请重新发布';self.db.flush()
             else: raise ConflictError('知识正在发布，请稍后再编辑',code='PUBLISH_RUNNING')
 
@@ -116,19 +117,35 @@ class KnowledgeService:
         if version.status=='PUBLISHED': raise ConflictError('当前版本已经发布')
         chunks=split_text(version.content,ChunkSettings.model_validate(version.settings))
         self._claim(doc,expected_revision)
-        version.status='PROCESSING';version.error=None
+        started_at=now()
+        version.status='PROCESSING';version.error=None;version.processing_started_time=started_at
         self.db.commit()
+        version_id=version.id
+        deadline_token=providers.request_deadline.set(time.monotonic()+120)
         try:
             vectors=providers.embed(chunks)
+            if len(vectors)!=len(chunks): raise AppError('向量数量不完整',code='INVALID_EMBEDDING')
+            self.db.expire_all()
+            from app.db.models import UserAccount
+            self.actor=self.db.get(UserAccount,self.actor.id,populate_existing=True)
             # Recheck permission after the potentially slow external request.
-            self.document(ident,write=True)
+            current_doc=self.document(ident,write=True)
+            if current_doc.revision!=expected_revision+1 or version.status!='PROCESSING' or version.processing_started_time.replace(tzinfo=None)!=started_at:
+                raise ConflictError('发布已被后续操作替代，本次迟到结果已丢弃',code='PUBLISH_SUPERSEDED')
             for i,(content,vector) in enumerate(zip(chunks,vectors)):
                 self.db.add(Chunk(version_id=version.id,ordinal=i,content=content,embedding=vector))
-            version.embedding_space=providers.space();version.status='PUBLISHED'
+            finalized=self.db.execute(update(Version).where(Version.id==version_id,Version.status=='PROCESSING',Version.processing_started_time==started_at)
+                .values(embedding_space=providers.space(),status='PUBLISHED',published_time=now()))
+            if finalized.rowcount!=1: raise ConflictError('发布租约已失效，迟到结果已丢弃',code='PUBLISH_SUPERSEDED')
             self.db.commit()
-        except AppError as exc:
-            self.db.rollback();version=self.db.get(Version,version.id)
-            version.status='FAILED';version.error=exc.message;self.db.commit()
+        except Exception as exc:
+            self.db.rollback();version=self.db.get(Version,version_id)
+            if not version: raise NotFoundError('知识已删除')
+            if version.status=='PROCESSING' and version.processing_started_time and version.processing_started_time.replace(tzinfo=None)==started_at:
+                version.status='FAILED';version.error=exc.message if isinstance(exc,AppError) else '发布未完成，请重试；旧有效版本保留'
+            self.db.commit()
+        finally:
+            providers.request_deadline.reset(deadline_token)
         self.db.refresh(doc)
         return self.view(doc,detail=True)
 

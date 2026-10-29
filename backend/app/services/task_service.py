@@ -143,6 +143,8 @@ class TaskService:
         payload: TaskUpdate,
         *,
         actor: UserAccount,
+        commit: bool = True,
+        origin: str = 'HUMAN',
     ) -> Task:
         self.projects.require_writable(project_id, actor=actor)
         task = self._get_in_project(project_id, task_id)
@@ -186,10 +188,14 @@ class TaskService:
             updated_by=actor.id,
         )
         from app.coo.events import enqueue
-        enqueue(self.db, key=f'task.updated:{task.id}:{payload.expected_revision+1}', event_type='TASK_UPDATED',
-            project_id=project_id, actor_id=actor.id, payload={'task_id':task.id,'revision':payload.expected_revision+1,
-                'changed_fields':list(payload.model_fields_set-{'expected_revision'})})
-        self.db.commit()
+        if origin == 'HUMAN':
+            enqueue(self.db, key=f'task.updated:{task.id}:{payload.expected_revision+1}', event_type='TASK_UPDATED',
+                project_id=project_id, actor_id=actor.id, payload={'task_id':task.id,'revision':payload.expected_revision+1,
+                    'changed_fields':list(payload.model_fields_set-{'expected_revision'})})
+        if commit:
+            self.db.commit()
+        else:
+            self.db.flush()
         refreshed = self.db.get(Task, task.id)
         if refreshed is None:
             raise NotFoundError("任务不存在")

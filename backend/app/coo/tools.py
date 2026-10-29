@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 from pydantic import Field
 from app.core.exceptions import AppError
-from app.schemas.task import TaskCreate, TaskStatusFilter
+from app.schemas.task import TaskCreate, TaskStatusFilter, TaskUpdate
+from app.db.models import TaskStatus
 from app.schemas.task_comment import TaskCommentCreate
 from app.schemas.requirement import RequirementRead
 from app.schemas.project import ProjectRead
@@ -21,6 +22,10 @@ class RequirementListArgs(ProjectArgs): keyword: str|None=Field(default=None,max
 class RequirementArgs(Input): requirement_id: str=Field(min_length=32,max_length=32)
 class TaskListArgs(ProjectArgs): keyword: str|None=Field(default=None,max_length=100)
 class TaskArgs(ProjectArgs): task_id: str=Field(min_length=32,max_length=32)
+class UpdateTaskArgs(TaskArgs):
+    expected_revision: int=Field(ge=1)
+    status: TaskStatus
+
 class CommentArgs(TaskArgs):
     content: str=Field(min_length=1,max_length=4000)
     parent_id: str|None=Field(default=None,min_length=32,max_length=32)
@@ -50,6 +55,7 @@ REGISTRY={
  'get_task':Tool(TaskArgs,'查询任务详情。'),
  'list_task_comments':Tool(TaskArgs,'查询任务最近100条留言。'),
  'create_task_comment':Tool(CommentArgs,'以明确的 Coo AI 身份留言；仅员工本轮勾选授权后可自动执行，否则需确认。','COMMENT'),
+ 'update_task':Tool(UpdateTaskArgs,'建议更新已有任务状态。先 get_task 读取当前 revision；确认时沿用并发校验，永远需要人工确认。','CONFIRM'),
  'create_task':Tool(CreateTaskArgs,'提出创建任务建议；永远需要人工确认，不会立即创建。','CONFIRM'),
  'search_knowledge':Tool(SearchInput,'检索当前可访问企业知识和指定项目有效知识，返回可引用片段。'),
 }
@@ -89,6 +95,8 @@ class BusinessTools:
             if name=='analyze_requirement':
                 ProjectService(db).require_writable(row.project_id,actor=actor)
                 row=await service.analyze_existing(row,user=actor.id)
+                if row.analysis_status.value=='FAILED':
+                    raise AppError(row.analysis_error_message or '需求分析未完成',code=row.analysis_error_code or 'COO_ANALYSIS_FAILED',status_code=503)
             return RequirementRead.model_validate(row).model_dump(mode='json')
         if name=='list_tasks':
             result=TaskService(db).list(args['project_id'],actor=actor,keyword=args.get('keyword'),status_filter=TaskStatusFilter.ALL,version_id=None)
@@ -98,9 +106,16 @@ class BusinessTools:
         if name=='create_task_comment':
             body=TaskCommentCreate.model_validate({k:v for k,v in args.items() if k in ('content','parent_id')})
             return TaskCommentService(db).create(args['project_id'],args['task_id'],body,actor=actor,agent_run_id=run_id,commit=commit).model_dump(mode='json')
+        if name=='update_task':
+            body=TaskUpdate(expected_revision=args['expected_revision'],status=args['status'])
+            row=TaskService(db).update(args['project_id'],args['task_id'],body,actor=actor,commit=commit,origin='COO')
+            return TaskRead.model_validate(row).model_dump(mode='json')
         if name=='create_task':
             body=TaskCreate.model_validate({k:v for k,v in args.items() if k!='project_id'})
             row=TaskService(db).create(args['project_id'],body,actor=actor,commit=commit)
             return TaskRead.model_validate(row).model_dump(mode='json')
-        if name=='search_knowledge': return search(db,actor,SearchInput.model_validate(args))
+        if name=='search_knowledge':
+            result=search(db,actor,SearchInput.model_validate(args))
+            result.pop('recall',None)  # Detailed recall IDs belong to the KB test UI, not model context.
+            return result
         raise AppError('未知工具',code='UNKNOWN_TOOL',status_code=422)

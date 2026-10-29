@@ -73,3 +73,42 @@ def test_provider_rejects_invalid_vectors_and_rerank_indices(monkeypatch):
     with pytest.raises(AppError):providers.embed(['a'])
     monkeypatch.setattr(providers,'post',lambda *a:{'results':[{'index':2,'relevance_score':.9}]})
     with pytest.raises(AppError):providers.rerank('a',['b'])
+
+def test_future_version_restore_disable_and_low_rerank_score(db_session):
+    with TestClient(app) as c,patch('app.knowledge.providers.embed',side_effect=lambda texts:[[1.,0.] for _ in texts]):
+        p=_create_project(c,'版本生命周期');cat=category(c,p);v1=publish(c,save(c,cat)).json()['data'];active=v1['active_version_id']
+        future=save(c,cat,v1['id'],v1['revision'],content='未来生效的履约规范',effective_from=(now()+timedelta(days=1)).isoformat())
+        future=publish(c,future).json()['data'];assert future['active_version_id']==active
+        with patch('app.knowledge.providers.rerank',return_value=[{'index':0,'relevance_score':.1}]):
+            r=c.post('/api/v1/knowledge/search',json={'query':'订单超时','project_id':p['id'],'min_score':.8}).json()['data']
+            assert r['results']==[] and r['rerank_applied']
+        restored=c.post(f"/api/v1/knowledge/documents/{v1['id']}/restore",json={'expected_revision':future['revision']}).json()['data']
+        assert restored['versions'][0]['status']=='DRAFT' and restored['versions'][0]['effective_from'] is None
+        restored=publish(c,restored).json()['data'];assert restored['versions'][0]['version']==3
+        disabled=c.patch(f"/api/v1/knowledge/documents/{v1['id']}/enabled",json={'expected_revision':restored['revision'],'enabled':False}).json()['data']
+        assert disabled['active_version_id'] is None
+
+def test_late_publication_cannot_revive_a_superseded_version(db_session):
+    from app.db.session import SessionLocal
+    from app.db.models import UserAccount
+    from app.knowledge.models import KnowledgeVersion,KnowledgeChunk
+    from app.knowledge.service import KnowledgeService
+    from app.knowledge.schemas import DocumentSave
+    from sqlalchemy import select,func
+    admin=_admin(db_session)
+    with TestClient(app) as c,patch('app.knowledge.providers.embed',side_effect=lambda texts:[[1.,0.] for _ in texts]):
+        p=_create_project(c,'迟到发布保护');cat=category(c,p);v1=publish(c,save(c,cat)).json()['data']
+        v2=save(c,cat,v1['id'],v1['revision'],content='迟到的旧发布结果');old_version_id=v2['versions'][0]['id']
+        def delayed_vectors(texts):
+            with SessionLocal() as db:
+                old=db.get(KnowledgeVersion,old_version_id);old.status='FAILED';old.error='模拟租约被恢复';db.commit()
+                service=KnowledgeService(db,db.get(UserAccount,admin.id))
+                later=service.save(DocumentSave(title=v2['title'],category_id=cat['id'],content='新的有效发货政策',expected_revision=v2['revision']+1),v2['id'])
+                with patch('app.knowledge.providers.embed',side_effect=lambda values:[[1.,0.] for _ in values]):
+                    newer=service.publish(v2['id'],later['revision'])
+                assert newer['versions'][0]['version']==3 and newer['versions'][0]['status']=='PUBLISHED'
+            return [[1.,0.] for _ in texts]
+        with patch('app.knowledge.providers.embed',side_effect=delayed_vectors):result=publish(c,v2).json()['data']
+        assert result['versions'][0]['version']==3 and result['active_version_id']==result['versions'][0]['id']
+        assert next(v for v in result['versions'] if v['id']==old_version_id)['status']=='FAILED'
+        assert db_session.scalar(select(func.count()).select_from(KnowledgeChunk).where(KnowledgeChunk.version_id==old_version_id))==0

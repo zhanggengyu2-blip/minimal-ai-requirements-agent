@@ -66,3 +66,17 @@ def test_expired_lease_is_recovered_and_exhaustion_is_visible(db_session):
         row=db_session.get(BusinessEvent,event['id']);db_session.refresh(row);assert row.status=='SUCCEEDED' and row.attempts==2
         row.status='PROCESSING';row.lease_until=utc_now()-timedelta(minutes=5);row.attempts=5;db_session.commit()
         assert not asyncio.run(process_one(SessionLocal));db_session.refresh(row);assert row.status=='FAILED'
+
+def test_background_worker_runs_after_browser_client_closes_and_only_claims_once(db_session):
+    with TestClient(app) as c:
+        p=_create_project(c,'后台独立执行');event=c.post('/api/v1/coo/events/simulated-order',json={'project_id':p['id'],'order_id':'BACKGROUND-001'}).json()['data']
+    async def delayed(*args,**kwargs):
+        await asyncio.sleep(.02)
+        return answer()
+    async def two_workers():return await asyncio.gather(process_one(SessionLocal),process_one(SessionLocal))
+    with patch('app.coo.provider.ModelClient.complete',new=AsyncMock(side_effect=delayed)) as mocked:
+        results=asyncio.run(two_workers())
+    assert results.count(True)==1 and mocked.await_count==1
+    with TestClient(app) as c:
+        record=next(r for r in c.get('/api/v1/coo/events').json()['data'] if r['id']==event['id'])
+        assert record['status']=='SUCCEEDED' and record['attempts']==1

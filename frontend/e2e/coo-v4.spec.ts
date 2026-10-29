@@ -51,5 +51,6 @@ test('V4 knowledge, Coo confirmation, AI comment and proactive event loop',async
  const event=(await (await page.request.post(base+'/coo/events/simulated-order',{headers,data:{project_id:project.id,order_id:`ERP-${suffix}`}})).json()).data
  await expect.poll(async()=>{const list=(await (await page.request.get(base+'/coo/events')).json()).data;return list.find((v:{id:string})=>v.id===event.id)?.status},{timeout:25000}).toBe('SUCCEEDED')
  await page.goto('/coo/events');await expect(page.getByRole('heading',{name:'Coo 主动工作',exact:true})).toBeVisible()
+ await expect(page.locator('.events-page .el-table').first().getByText('履约异常',{exact:false})).toBeVisible()
  await page.screenshot({path:'test-results/coo-v4-events.png',fullPage:true})
 })

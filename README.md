@@ -68,3 +68,12 @@ pnpm --dir frontend test:e2e
 - [第三方来源与许可](THIRD_PARTY_NOTICES.md)
 
 知识库复用 [AI 电商智能客服](https://github.com/zhanggengyu2-blip/ai-ecommerce-customer-service) 的 foundation 实现与测试思路；其 AgentServe 上游 Apache 2.0 许可证随仓库保留，第三方原始实现不计作本项目原创。
+
+一键执行隔离的 V4 浏览器验收（需本地 8000/3000/8416 端口空闲、依赖与 Playwright Chromium 已安装）：
+
+```bash
+pnpm --dir frontend exec playwright install chromium
+backend/.venv/bin/python backend/scripts/verify_v4_e2e.py
+```
+
+脚本会创建独立临时 SQLite、测试管理员和受控模型 HTTP 服务，运行原业务与 V4 两条浏览器用例，然后停止测试服务。测试模型不是真实 LLM。GitHub CI 使用同样的隔离方式。

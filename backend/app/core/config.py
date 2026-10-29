@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,7 +29,7 @@ def _resolve_sqlite_url(value: str) -> str:
 
 
 class Settings(BaseSettings):
-    app_name: str = "极简AI团队需求管理智能体"
+    app_name: str = "Coo 企业 AI 协作系统 V4.0"
     app_env: str = "development"
     debug: bool = False
     api_v1_prefix: str = "/api/v1"
@@ -51,7 +52,7 @@ class Settings(BaseSettings):
     coo_run_timeout_seconds: float = Field(default=90, gt=0, le=300)
     coo_max_rounds: int = Field(default=6, ge=1, le=12)
     coo_max_output_tokens: int = Field(default=1500, ge=128, le=4000)
-    coo_token_budget: int = Field(default=48000, ge=2000, le=200000)
+    coo_token_budget: int = Field(default=96000, ge=2000, le=200000)
     coo_context_chars: int = Field(default=18000, ge=4000, le=60000)
     coo_event_poll_seconds: float = Field(default=2, ge=0.2, le=60)
     coo_event_max_attempts: int = Field(default=5, ge=1, le=10)
@@ -63,6 +64,7 @@ class Settings(BaseSettings):
     knowledge_rerank_base_url: str = ""
     knowledge_rerank_api_key: str = ""
     knowledge_rerank_model: str = ""
+    knowledge_rerank_format: Literal["standard", "dashscope"] = "standard"
 
     dify_base_url: str = "http://127.0.0.1/v1"
     dify_api_key: str = ""

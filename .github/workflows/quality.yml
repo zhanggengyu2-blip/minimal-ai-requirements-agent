@@ -89,6 +89,16 @@ jobs:
       E2E_SHARED_PASSWORD: e2e-shared-password
       E2E_ADMIN_DEPARTMENT: 产品部
       E2E_ADMIN_NAME: E2E管理员
+      E2E_COO_FIXTURE: '1'
+      COO_BASE_URL: http://127.0.0.1:8416/v1
+      COO_API_KEY: controlled-test-fixture
+      COO_MODEL: controlled-fixture-NOT-REAL-LLM
+      KNOWLEDGE_EMBEDDING_BASE_URL: http://127.0.0.1:8416/v1
+      KNOWLEDGE_EMBEDDING_API_KEY: controlled-test-fixture
+      KNOWLEDGE_EMBEDDING_MODEL: controlled-embedding
+      KNOWLEDGE_RERANK_BASE_URL: http://127.0.0.1:8416/v1
+      KNOWLEDGE_RERANK_API_KEY: controlled-test-fixture
+      KNOWLEDGE_RERANK_MODEL: controlled-rerank
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -117,7 +127,8 @@ jobs:
           python scripts/bootstrap_admin.py --department "${E2E_ADMIN_DEPARTMENT}" --name "${E2E_ADMIN_NAME}"
       - name: Start application
         run: |
-          python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 > "${RUNNER_TEMP}/backend.log" 2>&1 &
+          python backend/tests/model_fixture_server.py > "${RUNNER_TEMP}/model-fixture.log" 2>&1 &
+          python backend/scripts/run_v4.py > "${RUNNER_TEMP}/backend.log" 2>&1 &
           pnpm --dir frontend run dev > "${RUNNER_TEMP}/frontend.log" 2>&1 &
           for attempt in {1..30}; do curl --fail --silent http://127.0.0.1:8000/api/v1/ready && break; sleep 1; done
           curl --fail --silent http://127.0.0.1:8000/api/v1/ready

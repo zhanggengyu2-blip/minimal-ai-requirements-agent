@@ -24,7 +24,7 @@ RULES='''你是企业共享 AI 同事 Coo，代表当前员工处理目标。由
 PENDING 建议尚未执行，必须明确告诉员工等待确认。没有勾选本轮授权时，留言也需要确认。
 模型输出不应包含内部思考过程，只需简短说明发现和可执行结论。ERP 模拟数据必须标记为模拟。
 最终必须输出严格 JSON：{"answer":"中文回复","source_ids":["本次 search_knowledge 实际返回的片段ID"]}。
-引用知识时仅可引用本轮实际检索结果；没有依据时说明不足。历史对话的引用不能替代本轮检索。
+引用知识时仅可引用本轮实际检索结果；没有依据时说明不足。历史对话的引用不能替代本轮检索。历史业务结论仅代表当时快照，当前有效依据需要重新查询。
 '''
 
 def encode(value): return json.dumps(value,ensure_ascii=False,default=str)
@@ -58,7 +58,7 @@ class CooService:
         if body.project_id:ProjectService(self.db).get_visible(body.project_id,actor=self.actor)
         row=CooSession(owner_id=self.actor.id,**body.model_dump());self.db.add(row);self.db.commit();return self.session_view(row)
 
-    def session_view(self,row):return {'id':row.id,'title':row.title,'project_id':row.project_id,'created_time':row.created_time}
+    def session_view(self,row):return {'id':row.id,'title':row.title,'project_id':row.project_id,'created_time':row.created_time.replace(tzinfo=timezone.utc)}
 
     def sessions(self):
         rows=self.db.scalars(select(CooSession).where(CooSession.owner_id==self.actor.id).order_by(CooSession.created_time.desc()).limit(100)).all()
@@ -74,15 +74,25 @@ class CooService:
         if not run or run.owner_id!=self.actor.id:raise NotFoundError('Coo 执行记录不存在')
         for project_id in set([*run.project_ids,*([run.project_id] if run.project_id else [])]):
             ProjectService(self.db).get_visible(project_id,actor=self.actor)
+        knowledge_calls=self.db.scalars(select(CooToolCall).where(CooToolCall.run_id==run.id,CooToolCall.name=='search_knowledge',CooToolCall.status=='SUCCEEDED')).all()
+        for call in knowledge_calls:
+            for source in (call.result or {}).get('results',[]):
+                KnowledgeService(self.db,self.actor).document(source['document_id'])
         return run
 
     def run_view(self,run):
         self.check_run(run.id)
         calls=self.db.scalars(select(CooToolCall).where(CooToolCall.run_id==run.id).order_by(CooToolCall.sequence)).all()
         actions=self.db.scalars(select(CooAction).where(CooAction.run_id==run.id).order_by(CooAction.created_time)).all()
-        def row_view(row):return {c.name:getattr(row,c.name) for c in row.__table__.columns}
+        def row_view(row):return {c.name:(getattr(row,c.name).replace(tzinfo=timezone.utc) if isinstance(getattr(row,c.name),datetime) else getattr(row,c.name)) for c in row.__table__.columns}
         result=row_view(run);result['tools']=[row_view(c) for c in calls];result['actions']=[row_view(a) for a in actions]
         return result
+
+    def run_summary(self,run):
+        self.check_run(run.id)
+        return {'id':run.id,'project_id':run.project_id,'session_id':run.session_id,'goal':run.goal[:160],
+            'trigger':run.trigger,'status':run.status,'token_usage':run.token_usage,'model':run.model,
+            'created_time':run.created_time.replace(tzinfo=timezone.utc),'finished_time':run.finished_time.replace(tzinfo=timezone.utc) if run.finished_time else None}
 
     def history(self,ident):
         session=self.session(ident)
@@ -99,7 +109,7 @@ class CooService:
                 row.status='FAILED';row.error='上次执行中断，请重新发送';row.error_code='COO_INTERRUPTED';row.finished_time=utc_now()
         self.db.flush()
         active=exists(select(AgentRun.id).where(AgentRun.session_id==ident,AgentRun.status=='RUNNING'))
-        claim=self.db.execute(update(CooSession).where(CooSession.id==ident,~active).values(title=CooSession.title))
+        claim=self.db.execute(update(CooSession).where(CooSession.id==ident,~active).values(title=body.content.strip()[:45] if session.title=='与 Coo 协作' else CooSession.title))
         if claim.rowcount!=1:self.db.rollback();raise ConflictError('当前会话仍在执行，请等待结果')
         run=AgentRun(session_id=ident,owner_id=self.actor.id,project_id=session.project_id,project_ids=[session.project_id] if session.project_id else [],
             trigger='CHAT',goal=body.content,allow_comments=body.allow_comments,model=get_settings().coo_model)
@@ -159,13 +169,14 @@ class AgentRuntime:
                     if len(encode(messages))<=self.settings.coo_context_chars:break
                     if message['role']=='tool':message['content']='{"omitted":"较早工具结果因长度限制省略，请按ID重新查询"}'
                 if len(encode(messages))>self.settings.coo_context_chars:raise AppError('上下文过长，请缩小调查范围',code='COO_CONTEXT_LIMIT')
-                reservation=len(encode(messages).encode('utf-8'))+128*len(messages)+self.settings.coo_max_output_tokens
+                reservation=len(encode(messages).encode('utf-8'))+len(encode(definitions()).encode('utf-8'))+128*len(messages)+self.settings.coo_max_output_tokens
                 if estimated_spend+reservation>self.settings.coo_token_budget:raise AppError('Coo 达到本次 Token 预算，请缩小范围',code='COO_TOKEN_LIMIT')
                 estimated_spend+=reservation
                 remaining=self.settings.coo_run_timeout_seconds-(time.monotonic()-start)
                 result=await asyncio.wait_for(ModelClient().complete(messages,tools=definitions(),timeout=remaining),timeout=remaining)
                 if result.token_usage is None:all_usage_known=False
                 else:known_usage+=result.token_usage
+                if known_usage>self.settings.coo_token_budget:raise AppError('模型报告用量超过本次预算，已停止',code='COO_TOKEN_LIMIT')
                 run.token_usage=known_usage if all_usage_known else None;self.db.commit()
                 self.db.expire_all()
                 self.actor=self.db.get(UserAccount,self.actor.id,populate_existing=True)

@@ -84,3 +84,23 @@ def test_round_limit_and_requirement_analysis_candidate_validation(db_session,mo
             r=c.post('/api/v1/requirements',json={'project_id':p['id'],'raw_content':'需求分析候选校验','analyze_with_ai':True})
         row=c.get('/api/v1/requirements/'+r.json()['data']['id']).json()['data']
         assert row['analysis_status']=='FAILED' and row['analysis_error_code']=='COO_ANALYSIS_INVALID'
+
+def test_task_status_update_requires_confirmation_and_preserves_revision_guard(db_session):
+    admin=_admin(db_session)
+    with TestClient(app) as c:
+        p=_create_project(c,'Coo任务更新');t=_create_task(c,p['id'],admin.id,'待调查任务');s=session(c,p)
+        args={'project_id':p['id'],'task_id':t['id'],'expected_revision':1,'status':'IN_PROGRESS'}
+        with patch('app.coo.provider.ModelClient.complete',new=AsyncMock(side_effect=[tool('get_task',{'project_id':p['id'],'task_id':t['id']}),tool('update_task',args),answer()])):run=send(c,s)
+        url=f"/api/v1/projects/{p['id']}/tasks/{t['id']}"
+        assert c.get(url).json()['data']['status']=='NOT_STARTED'
+        action=run['actions'][0]
+        approved=c.post('/api/v1/coo/actions/'+action['id']+'/decision',json={'decision':'APPROVE'}).json()['data']
+        assert approved['actions'][0]['status']=='SUCCEEDED'
+        assert c.get(url).json()['data']['status']=='IN_PROGRESS' and c.get(url).json()['data']['revision']==2
+        assert c.get('/api/v1/coo/events').json()['data']==[]
+        # A proposal using the old revision cannot overwrite a later employee update.
+        with patch('app.coo.provider.ModelClient.complete',new=AsyncMock(side_effect=[tool('update_task',args),answer()])):stale=send(c,s)
+        assert c.patch(url,json={'expected_revision':2,'status':'COMPLETED'}).status_code==200
+        failed=c.post('/api/v1/coo/actions/'+stale['actions'][0]['id']+'/decision',json={'decision':'APPROVE'}).json()['data']
+        assert failed['actions'][0]['status']=='FAILED'
+        assert c.get(url).json()['data']['status']=='COMPLETED' and c.get(url).json()['data']['revision']==3

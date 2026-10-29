@@ -66,3 +66,31 @@ def test_knowledge_disabled_during_model_generation_invalidates_citation(db_sess
             return answer(sources=[sources[0]['id']])
         with patch('app.coo.provider.ModelClient.complete',new=AsyncMock(side_effect=respond)):run=send(c,s)
         assert run['status']=='FAILED' and run['error_code']=='STALE_CITATIONS',run
+
+def test_token_budget_counts_tool_schemas_before_request(db_session,monkeypatch):
+    from app.coo import runtime
+    monkeypatch.setattr(runtime,'get_settings',lambda:get_settings().model_copy(update={'coo_token_budget':2000}))
+    with TestClient(app) as c:
+        p=_create_project(c,'预算限制');s=session(c,p)
+        with patch('app.coo.provider.ModelClient.complete',new=AsyncMock()) as mocked:run=send(c,s)
+        assert run['error_code']=='COO_TOKEN_LIMIT'
+        mocked.assert_not_awaited()
+
+def test_historical_run_respects_current_enterprise_department_acl(db_session):
+    from app.db.models import Department,UserAccount
+    from tests.test_knowledge import save,publish
+    admin=_admin(db_session);member=_member(db_session,'部门知识使用者')
+    with TestClient(app) as c:
+        p=_create_project(c,'企业知识历史权限');_add_member(c,p,admin,member)
+        cat=c.post('/api/v1/knowledge/categories',json={'name':'本部门规范','scope':'ENTERPRISE','access_policy':'DEPARTMENT','department_id':member.department_id}).json()['data']
+        with patch('app.knowledge.providers.embed',side_effect=lambda texts:[[1.,0.] for _ in texts]):doc=publish(c,save(c,cat)).json()['data']
+    with authenticated_as(member) as c,patch('app.knowledge.providers.embed',side_effect=lambda texts:[[1.,0.] for _ in texts]):
+        s=session(c,p)
+        async def respond(messages,**kwargs):
+            if messages[-1]['role']=='user':return tool('search_knowledge',{'project_id':p['id'],'query':'订单超时'})
+            return answer(sources=[json.loads(messages[-1]['content'])['results'][0]['id']])
+        with patch('app.coo.provider.ModelClient.complete',new=AsyncMock(side_effect=respond)):run=send(c,s)
+        assert run['status']=='SUCCEEDED',run
+    department=Department(name='调任部门');db_session.add(department);db_session.flush();member.department_id=department.id;db_session.commit()
+    with authenticated_as(member) as c:
+        assert c.get('/api/v1/coo/runs/'+run['id']).status_code==404

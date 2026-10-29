@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 from pydantic import ConfigDict, Field, field_validator
 from app.schemas.common import ORMModel
@@ -26,3 +26,8 @@ class TaskCommentRead(ORMModel):
     content: str
     agent_run_id: str | None
     created_time: datetime
+
+    @field_validator('created_time')
+    @classmethod
+    def utc_created_time(cls, value):
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value

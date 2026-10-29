@@ -41,6 +41,8 @@ class KnowledgeVersion(Base):
     effective_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     effective_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error: Mapped[str | None] = mapped_column(String(300))
+    processing_started_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 class KnowledgeChunk(Base):
