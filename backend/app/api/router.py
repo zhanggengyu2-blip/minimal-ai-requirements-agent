@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import require_authenticated_request
-from app.api.routes import auth, health, interviews, organization, projects, requirements, tasks, versions
+from app.api.routes import auth, health, organization, projects, requirements, tasks, versions
 
 
 api_router = APIRouter()
@@ -24,15 +24,12 @@ api_router.include_router(
     dependencies=protected,
 )
 api_router.include_router(
-    interviews.router,
-    prefix="/interviews",
-    tags=["interviews"],
-    dependencies=protected,
-)
-api_router.include_router(
     organization.departments_router, prefix="/departments", tags=["departments"]
 )
 api_router.include_router(
     organization.invitations_router, prefix="/invitations", tags=["invitations"]
 )
 api_router.include_router(organization.users_router, prefix="/users", tags=["users"])
+
+from app.api.routes import task_comments
+api_router.include_router(task_comments.router, prefix="/projects", tags=["task-comments"])

@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
@@ -33,7 +34,7 @@ def test_health_and_readiness_endpoints_report_runtime_state():
     assert ready.status_code == 200
     assert ready.json()["data"] == {
         "status": "ready",
-        "migration_revision": "0006_project_versions",
+        "migration_revision": __import__("alembic.script", fromlist=["ScriptDirectory"]).ScriptDirectory.from_config(__import__("app.db.migrations", fromlist=["build_alembic_config"]).build_alembic_config()).get_current_head(),
     }
 
 
@@ -78,7 +79,8 @@ def test_not_found_errors_use_standard_response():
         interview = client.get(f"/api/v1/interviews/{missing_id}")
         invitation = client.post(f"/api/v1/invitations/{missing_id}/disable")
 
-    for response in (requirement, interview, invitation):
+    assert interview.status_code == 404
+    for response in (requirement, invitation):
         assert response.status_code == 404
         assert response.json()["code"] == "NOT_FOUND"
         assert response.json()["data"] is None
@@ -186,6 +188,7 @@ def test_department_with_invitation_cannot_be_deleted(db_session):
     assert response.json()["details"]["invitation_count"] == 1
 
 
+@pytest.mark.skip(reason="V4 访谈 API 下线，历史断言保留")
 def test_archived_project_cannot_start_interview():
     mocked = AsyncMock()
     with patch(
@@ -216,6 +219,7 @@ def test_archived_project_cannot_start_interview():
     mocked.assert_not_awaited()
 
 
+@pytest.mark.skip(reason="V4 访谈 API 下线，历史断言保留")
 def test_interview_actions_reject_missing_session_and_invalid_summary_field():
     session_id = "0" * 32
     with TestClient(app) as client:

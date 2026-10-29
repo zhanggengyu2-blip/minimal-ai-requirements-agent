@@ -11,12 +11,6 @@ export const router = createRouter({
       meta: { guestOnly: true },
     },
     {
-      path: '/interviews/workbench',
-      name: 'interview-workbench',
-      component: () => import('../views/InterviewWorkbench.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
       path: '/',
       component: () => import('../layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
@@ -31,12 +25,6 @@ export const router = createRouter({
           path: 'projects/:projectId/requirements',
           name: 'project-requirements',
           component: () => import('../views/ProjectRequirementsRoute.vue'),
-          meta: { projectRoute: true },
-        },
-        {
-          path: 'projects/:projectId/interviews',
-          name: 'project-interviews',
-          component: () => import('../views/ProjectInterviewsRoute.vue'),
           meta: { projectRoute: true },
         },
         {

@@ -15,8 +15,6 @@ from app.schemas.requirement import (
     RequirementCreate,
     RequirementRead,
 )
-from app.schemas.interview import InterviewSessionRead
-from app.services.interview_service import InterviewService
 from app.services.project_service import ProjectService
 from app.services.requirement_service import RequirementService
 
@@ -106,24 +104,6 @@ def get_requirement(requirement_id: str, request: Request, db: DbSession) -> Api
     )
     return ApiResponse(
         data=RequirementRead.model_validate(requirement), request_id=request.state.request_id
-    )
-
-
-@router.get(
-    "/{requirement_id}/interview", response_model=ApiResponse[InterviewSessionRead]
-)
-def get_requirement_interview(
-    requirement_id: str, request: Request, db: DbSession
-) -> ApiResponse[InterviewSessionRead]:
-    requirement = RequirementService(db).get_visible(
-        requirement_id, actor=request.state.current_user
-    )
-    if not requirement.interview_session_id:
-        raise NotFoundError("该需求没有关联访谈记录")
-    service = InterviewService(db)
-    return ApiResponse(
-        data=service.to_read(service.get(requirement.interview_session_id)),
-        request_id=request.state.request_id,
     )
 
 

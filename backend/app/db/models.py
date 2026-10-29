@@ -612,3 +612,20 @@ class Requirement(Base):
     )
 
     project: Mapped[Project] = relationship(back_populates="requirements")
+
+
+class TaskComment(Base):
+    __tablename__ = "task_comment"
+    __table_args__ = (
+        CheckConstraint("actor_type IN ('HUMAN', 'COO')", name="ck_comment_actor"),
+        Index("ix_comment_task_time", "task_id", "created_time"),
+    )
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"), nullable=False)
+    task_id: Mapped[str] = mapped_column(ForeignKey("task.id", ondelete="CASCADE"), nullable=False)
+    author_id: Mapped[str] = mapped_column(ForeignKey("user_account.id", ondelete="RESTRICT"), nullable=False)
+    actor_type: Mapped[str] = mapped_column(String(10), nullable=False, default="HUMAN")
+    parent_id: Mapped[str | None] = mapped_column(ForeignKey("task_comment.id", ondelete="CASCADE"))
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    agent_run_id: Mapped[str | None] = mapped_column(String(32))
+    created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

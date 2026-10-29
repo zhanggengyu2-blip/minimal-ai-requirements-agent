@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TaskComments from './TaskComments.vue'
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
@@ -279,6 +280,8 @@ watch(() => props.modelValue, (visible) => {
         <el-input v-model="form.description" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="补充任务范围、完成标准或注意事项" />
       </el-form-item>
     </el-form>
+
+    <TaskComments v-if="modelValue && currentTask" :project-id="projectId" :task-id="currentTask.id" :read-only="readOnly" />
 
     <template #footer>
       <div class="task-dialog-footer">

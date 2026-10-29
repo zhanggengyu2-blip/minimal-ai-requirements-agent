@@ -101,7 +101,6 @@ onMounted(refreshProjects)
   <div class="app-shell routed-app-shell">
     <header class="topbar app-topbar">
       <RouterLink class="brand brand-link" :to="{ name: 'projects' }">极简 AI 团队需求管理智能体</RouterLink>
-      <RouterLink class="interview-entry" :to="{ name: 'interview-workbench' }">进入需求访谈工作台</RouterLink>
       <el-dropdown trigger="click" class="user-menu">
         <button type="button" class="user-menu-trigger">
           <span class="user-avatar">{{ auth.currentUser.value?.name.slice(0, 1) }}</span>
@@ -139,9 +138,6 @@ onMounted(refreshProjects)
                 <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-requirements']) }" :to="{ name: 'project-requirements', params: { projectId: project.id } }">
                   <el-icon><Document /></el-icon><span>需求</span><em>{{ project.requirement_count }}</em>
                 </RouterLink>
-                <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-interviews']) }" :to="{ name: 'project-interviews', params: { projectId: project.id } }">
-                  <el-icon><ChatDotRound /></el-icon><span>访谈记录</span>
-                </RouterLink>
                 <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-task-board', 'project-task-gantt']) }" :to="{ name: 'project-task-board', params: { projectId: project.id } }">
                   <el-icon><Operation /></el-icon><span>团队任务</span>
                 </RouterLink>
@@ -168,9 +164,6 @@ onMounted(refreshProjects)
                 <div v-show="expandedProjectIds.has(project.id)" class="project-children">
                   <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-requirements']) }" :to="{ name: 'project-requirements', params: { projectId: project.id } }">
                     <el-icon><Document /></el-icon><span>需求</span>
-                  </RouterLink>
-                  <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-interviews']) }" :to="{ name: 'project-interviews', params: { projectId: project.id } }">
-                    <el-icon><ChatDotRound /></el-icon><span>访谈记录</span>
                   </RouterLink>
                   <RouterLink class="requirement-link" :class="{ active: isRouteActive(project.id, ['project-task-board', 'project-task-gantt']) }" :to="{ name: 'project-task-board', params: { projectId: project.id } }">
                     <el-icon><Operation /></el-icon><span>团队任务</span>

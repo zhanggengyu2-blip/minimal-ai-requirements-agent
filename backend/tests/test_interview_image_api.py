@@ -1,3 +1,6 @@
+import pytest
+pytestmark = pytest.mark.skip(reason="V4 已下线访谈 API；保留历史集成测试供恢复时使用")
+
 from unittest.mock import AsyncMock, patch
 
 import httpx

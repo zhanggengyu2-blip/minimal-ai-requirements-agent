@@ -8,7 +8,8 @@ from app.db.session import SessionLocal, engine
 
 
 def test_database_is_at_v3_baseline() -> None:
-    assert current_revision() == "0006_project_versions"
+    from alembic.script import ScriptDirectory
+    assert current_revision() == ScriptDirectory.from_config(build_alembic_config()).get_current_head()
 
 
 def test_repeated_upgrade_preserves_seed_data() -> None:
