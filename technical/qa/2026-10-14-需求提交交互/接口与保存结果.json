@@ -1,0 +1,122 @@
+{
+  "oversize_api": {
+    "input_length": 10001,
+    "status": 422,
+    "code": "VALIDATION_ERROR",
+    "count_before": 1,
+    "count_after": 1
+  },
+  "batch_analysis": {
+    "status": 202,
+    "code": "ACCEPTED",
+    "data": {
+      "task_id": "c20d6953463943279860d612f3cb9732",
+      "total": 1,
+      "status": "RESERVED",
+      "message": "批量分析接口已预留，异步任务调度将在下一阶段实现"
+    },
+    "requirement_status_after": "FAILED"
+  },
+  "archived_write": {
+    "status": 403,
+    "code": "PROJECT_ARCHIVED",
+    "count_after": 10
+  },
+  "counts": {
+    "project_a": 10,
+    "all_visible": 11
+  },
+  "saved_requirements": [
+    {
+      "id": "aa029dd1eea544b9a5dd8648afb5cc93",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 28,
+      "raw_preview": "QA-成功：产品经理希望按关键词搜索需求，减少翻找时间。",
+      "analysis_status": "ANALYZED",
+      "error_code": null
+    },
+    {
+      "id": "f15645205226445db320df6d7d683ed3",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 33,
+      "raw_preview": "QA-连接失败：即使AI服务不可用，也必须保存原始需求并明确反馈。",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_HTTP_ERROR"
+    },
+    {
+      "id": "eaf1549fbc874ab4a976505c813eb81c",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 33,
+      "raw_preview": "QA-连接失败：即使AI服务不可用，也必须保存原始需求并明确反馈。",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_HTTP_ERROR"
+    },
+    {
+      "id": "22871a4ec79d405db6682e2ed1d40b71",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 23,
+      "raw_preview": "QA-超时：分析超时后仍应保存需求并显示提示。",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_TIMEOUT"
+    },
+    {
+      "id": "ee01044da41b4ef09e0bec0b6a99c266",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 26,
+      "raw_preview": "QA-非法结果：分析结果缺少字段时仍应保留原始需求。",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_OUTPUT_INVALID"
+    },
+    {
+      "id": "5be79ef5117a493abd422d422713f913",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 21,
+      "raw_preview": "QA-慢速：快速双击提交应只生成一条需求。",
+      "analysis_status": "ANALYZED",
+      "error_code": null
+    },
+    {
+      "id": "932224bd2bd446b9b90a9a42908a17d4",
+      "project_id": "90ec2cc81b38493793ffa4390cbead91",
+      "raw_length": 28,
+      "raw_preview": "QA-B专属：该需求只属于对照项目B，不应出现在项目A。",
+      "analysis_status": "ANALYZED",
+      "error_code": null
+    },
+    {
+      "id": "2be7d82bee1844638262b17378fa105a",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 29,
+      "raw_preview": "QA-服务离线：AI服务进程停止时仍应保存需求并明确反馈。",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_CONNECTION_ERROR"
+    },
+    {
+      "id": "8baccb998a64423dbb24452b5e0665dc",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 10000,
+      "raw_preview": "界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界界",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_CONNECTION_ERROR"
+    },
+    {
+      "id": "00d5fac061b04631a991125724c8eb60",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 5001,
+      "raw_preview": "超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_CONNECTION_ERROR"
+    },
+    {
+      "id": "aaa3e581eead4697ad408bc6378d0f43",
+      "project_id": "c10a7c9adee74090a2bc2bd15644c449",
+      "raw_length": 5001,
+      "raw_preview": "超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超超",
+      "analysis_status": "FAILED",
+      "error_code": "DIFY_CONNECTION_ERROR"
+    }
+  ],
+  "cancelled_records": 0,
+  "doubleclick_records": 1,
+  "additional_data_note": "两条5001字符记录属于测试准备中提交的合法长度输入，保留在独立测试库中，不计入超限用例。"
+}

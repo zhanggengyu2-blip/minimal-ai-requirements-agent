@@ -1,0 +1,20 @@
+[
+  {
+    "level": "error",
+    "message": "Error: 需求已保存，但 AI 分析失败，可稍后重新分析\n    at http.interceptors.response.use.status (http://localhost:3001/src/api/http.ts:48:31)\n    at async Axios.request (http://localhost:3001/@fs/private/tmp/requirements-qa-20261014-cPlFUB/vite-cache/deps/axios.js?v=f6a2ce1e:2926:14)\n    at async submit (http://localhost:3001/src/components/RequirementDialog.vue:43:24)",
+    "timestamp": "2026-10-14T13:13:58.841Z",
+    "url": "http://localhost:3001/src/api/http.ts"
+  },
+  {
+    "level": "warn",
+    "message": "Unhandled error during execution of component event handler Proxy(Object) at <ElButton>\nat <RequirementBoard>\nat <ProjectRequirementsRoute>\nat <RouterView>\nat <AppLayout>\nat <RouterView>\nat <App> Array(7)",
+    "timestamp": "2026-10-14T13:18:18.348Z",
+    "url": "http://localhost:3001/@fs/private/tmp/requirements-qa-20261014-cPlFUB/vite-cache/deps/element-plus.js?v=fc5cdb55"
+  },
+  {
+    "level": "error",
+    "message": "Error: 批量 AI 分析接口已预留\n    at http.interceptors.response.use.status (http://localhost:3001/src/api/http.ts:48:31)\n    at async Axios.request (http://localhost:3001/@fs/private/tmp/requirements-qa-20261014-cPlFUB/vite-cache/deps/axios.js?v=f6a2ce1e:2926:14)\n    at async batchAnalyze (http://localhost:3001/src/views/RequirementBoard.vue:75:24)",
+    "timestamp": "2026-10-14T13:18:18.348Z",
+    "url": "http://localhost:3001/src/api/http.ts"
+  }
+]

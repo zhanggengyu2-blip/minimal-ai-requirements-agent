@@ -1,0 +1,134 @@
+- banner:
+  - link "极简 AI 团队需求管理智能体":
+    - /url: /projects
+  - link "进入需求访谈工作台":
+    - /url: /interviews/workbench
+  - button "交 交互测试管理员 产品部 · 管理员":
+    - generic: 交
+    - strong: 交互测试管理员
+    - generic: 产品部 · 管理员
+- complementary:
+  - link "项目 ›":
+    - /url: /projects
+    - generic: 项目
+    - generic: ›
+  - button "新建项目":
+    - generic: 新建项目
+  - button "› QA修复对照项目B" [expanded]:
+    - generic: ›
+    - generic: QA修复对照项目B
+  - link "需求 1":
+    - /url: /projects/2d0c4e2699ed4e2f84d4c2cdf4f233d4/requirements
+    - generic: 需求
+    - emphasis: "1"
+  - link "访谈记录":
+    - /url: /projects/2d0c4e2699ed4e2f84d4c2cdf4f233d4/interviews
+    - generic: 访谈记录
+  - link "团队任务":
+    - /url: /projects/2d0c4e2699ed4e2f84d4c2cdf4f233d4/tasks/board
+    - generic: 团队任务
+  - link "版本排期":
+    - /url: /projects/2d0c4e2699ed4e2f84d4c2cdf4f233d4/versions
+    - generic: 版本排期
+  - button "› QA修复回归项目A" [expanded]:
+    - generic: ›
+    - generic: QA修复回归项目A
+  - link "需求 4":
+    - /url: /projects/b473fa3ee345492d934aa2a652e42bed/requirements
+    - generic: 需求
+    - emphasis: "4"
+  - link "访谈记录":
+    - /url: /projects/b473fa3ee345492d934aa2a652e42bed/interviews
+    - generic: 访谈记录
+  - link "团队任务":
+    - /url: /projects/b473fa3ee345492d934aa2a652e42bed/tasks/board
+    - generic: 团队任务
+  - link "版本排期":
+    - /url: /projects/b473fa3ee345492d934aa2a652e42bed/versions
+    - generic: 版本排期
+  - strong: 用户与部门
+  - emphasis: 管理员专属
+  - link "部门管理":
+    - /url: /admin/departments
+    - generic: 部门管理
+  - link "邀请码管理":
+    - /url: /admin/invitations
+    - generic: 邀请码管理
+- main:
+  - strong: QA修复回归项目A
+  - generic: /
+  - strong: 需求
+  - textbox "搜索需求内容"
+  - button "提交新需求":
+    - generic: 提交新需求
+  - paragraph: 按 AI 建议优先级分组 · 点击卡片查看完整分析结果
+  - strong: 紧急
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 高优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 中优先级
+  - generic: "1"
+  - article:
+    - generic: REQ-59E8BB
+    - generic: P2
+    - paragraph: QA-慢速成功：保存后等待分析，再自动显示成功结果。
+    - generic: 分析完成
+    - generic: 新增功能
+  - strong: 低优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 待分析
+  - generic: "3"
+  - article:
+    - generic: REQ-41E425
+    - paragraph: QA-超时：保存完成后，分析超时应自动显示失败原因。
+    - generic: 分析失败
+    - generic: 需求已保存，但 AI 分析失败
+  - article:
+    - generic: REQ-A9E5B6
+    - paragraph: QA-连接失败：AI失败也应关闭提交弹窗并保留需求。
+    - generic: 分析失败
+    - generic: 需求已保存，但 AI 分析失败
+  - article:
+    - generic: REQ-82B738
+    - paragraph: QA-只保存：未开启AI时不应调用分析服务。
+    - generic: 未开启 AI 分析
+  - generic: 共 4 条需求
+  - combobox
+  - generic: 20条/页
+  - button "上一页" [disabled]:
+  - list:
+    - listitem "第 1 页": "1"
+  - button "下一页" [disabled]:
+- text: "* *"
+- dialog "需求详情":
+  - banner:
+    - heading "需求详情" [level=2]
+    - button "关闭此对话框":
+  - generic: 所属项目
+  - strong: QA修复回归项目A
+  - generic: AI 分析状态
+  - generic: 分析失败
+  - generic: 需求编号
+  - strong: REQ-41E425
+  - generic: 需求等级
+  - generic: 待分析
+  - heading "原始需求描述" [level=4]
+  - generic: QA-超时：保存完成后，分析超时应自动显示失败原因。
+  - heading "AI 建议" [level=4]
+  - strong: AI 分析失败
+  - paragraph: 需求已保存，但 AI 分析失败，原始内容不会丢失。
+  - paragraph: 失败原因：AI 分析超时，请稍后重试
+  - paragraph: 错误代码：DIFY_TIMEOUT
+  - text: AI 建议仅供参考，不会自动修改需求内容
+  - generic: 创建人
+  - text: 2fbfc51e29ae4cf3b17900ce76a2c6d5
+  - generic: 提交时间
+  - text: 2026-10-14 14:06
+  - generic: 人工修改
+  - text: 否
+  - contentinfo:
+    - button "完成":
+      - generic: 完成

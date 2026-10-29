@@ -1,0 +1,98 @@
+- banner:
+  - link "极简 AI 团队需求管理智能体":
+    - /url: /projects
+  - link "进入需求访谈工作台":
+    - /url: /interviews/workbench
+  - button "交 交互测试管理员 产品部 · 管理员":
+    - generic: 交
+    - strong: 交互测试管理员
+    - generic: 产品部 · 管理员
+- complementary:
+  - link "项目 ›":
+    - /url: /projects
+    - generic: 项目
+    - generic: ›
+  - button "新建项目":
+    - generic: 新建项目
+  - button "› QA交互验证-20261014" [expanded]:
+    - generic: ›
+    - generic: QA交互验证-20261014
+  - link "需求 1":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/requirements
+    - generic: 需求
+    - emphasis: "1"
+  - link "访谈记录":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/interviews
+    - generic: 访谈记录
+  - link "团队任务":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/tasks/board
+    - generic: 团队任务
+  - link "版本排期":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/versions
+    - generic: 版本排期
+  - strong: 用户与部门
+  - emphasis: 管理员专属
+  - link "部门管理":
+    - /url: /admin/departments
+    - generic: 部门管理
+  - link "邀请码管理":
+    - /url: /admin/invitations
+    - generic: 邀请码管理
+- main:
+  - strong: 全部项目
+  - generic: /
+  - strong: 需求
+  - textbox "搜索需求内容"
+  - button "AI批量分析":
+    - generic: AI批量分析
+  - button "提交新需求":
+    - generic: 提交新需求
+  - paragraph: 按 AI 建议优先级分组 · 点击卡片查看完整分析结果
+  - strong: 紧急
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 高优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 中优先级
+  - generic: "1"
+  - article:
+    - checkbox
+    - generic: REQ-B5CC93
+    - generic: P2
+    - paragraph: QA-成功：产品经理希望按关键词搜索需求，减少翻找时间。
+    - generic: 分析完成
+    - generic: 新增功能
+  - strong: 低优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 待分析
+  - generic: "0"
+  - generic: 暂无需求
+  - generic: 共 1 条需求
+  - combobox
+  - generic: 20条/页
+  - button "上一页" [disabled]:
+  - list:
+    - listitem "第 1 页": "1"
+  - button "下一页" [disabled]:
+- dialog:
+  - banner:
+    - heading "提交新需求" [level=2]
+    - paragraph: 填写需求信息，提交后系统将自动生成需求编号并发起 AI 分析
+    - button "关闭此对话框":
+  - generic: 所属项目 *
+  - combobox "所属项目 *"
+  - generic: QA交互验证-20261014
+  - generic: 需求描述 *
+  - textbox "需求描述 *":
+    - /placeholder: 请尽量清晰地说明使用场景、现状问题、期望结果和业务价值
+    - text: QA-超时：分析超时后仍应保存需求并显示提示。
+  - generic: 23 / 10000
+  - generic: 提交后 AI 将自动分析并给出建议，不会自动修改需求内容
+  - contentinfo:
+    - button "取消":
+      - generic: 取消
+    - button "提交需求":
+      - generic: 提交需求
+- text: "* *"

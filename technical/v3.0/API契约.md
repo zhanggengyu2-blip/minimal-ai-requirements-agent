@@ -277,7 +277,7 @@ GET /projects/{project_id}/tasks?version_id={version_id}&status=ALL
 
 ## 6. 前端类型生成
 
-1. 后端 schema 和路由完成后生成 `backend/v2.0/app/openapi.json`；
+1. 后端 schema 和路由完成后生成 `backend/app/openapi.json`；
 2. 前端执行现有 `generate:api` 生成 TypeScript 类型；
 3. CI 检查生成文件无未提交差异；
 4. 手写 API 封装只能组合生成类型，不得复制一套独立接口类型；

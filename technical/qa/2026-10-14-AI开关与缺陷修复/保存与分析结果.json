@@ -1,0 +1,37 @@
+[
+  {
+    "id": "bce774605b6d41618aa18c679a3a28fb",
+    "project": "QA修复对照项目B",
+    "raw_content": "QA-B专属：不能出现在项目A。",
+    "analysis_status": "NOT_RUN",
+    "analysis_error_code": null
+  },
+  {
+    "id": "72cba17e291949d085a5c3741582b738",
+    "project": "QA修复回归项目A",
+    "raw_content": "QA-只保存：未开启AI时不应调用分析服务。",
+    "analysis_status": "NOT_RUN",
+    "analysis_error_code": null
+  },
+  {
+    "id": "fad92d21bcdb45789e29521f1359e8bb",
+    "project": "QA修复回归项目A",
+    "raw_content": "QA-慢速成功：保存后等待分析，再自动显示成功结果。",
+    "analysis_status": "ANALYZED",
+    "analysis_error_code": null
+  },
+  {
+    "id": "dd9270ae42004bf5b5b8e347d9a9e5b6",
+    "project": "QA修复回归项目A",
+    "raw_content": "QA-连接失败：AI失败也应关闭提交弹窗并保留需求。",
+    "analysis_status": "FAILED",
+    "analysis_error_code": "DIFY_HTTP_ERROR"
+  },
+  {
+    "id": "17fb1b30513441e4914418b43c41e425",
+    "project": "QA修复回归项目A",
+    "raw_content": "QA-超时：保存完成后，分析超时应自动显示失败原因。",
+    "analysis_status": "FAILED",
+    "analysis_error_code": "DIFY_TIMEOUT"
+  }
+]

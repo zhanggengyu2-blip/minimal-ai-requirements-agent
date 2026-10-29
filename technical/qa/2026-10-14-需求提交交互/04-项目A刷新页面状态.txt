@@ -1,0 +1,131 @@
+- banner:
+  - link "极简 AI 团队需求管理智能体":
+    - /url: /projects
+  - link "进入需求访谈工作台":
+    - /url: /interviews/workbench
+  - button "交 交互测试管理员 产品部 · 管理员":
+    - generic: 交
+    - strong: 交互测试管理员
+    - generic: 产品部 · 管理员
+- complementary:
+  - link "项目 ›":
+    - /url: /projects
+    - generic: 项目
+    - generic: ›
+  - button "新建项目":
+    - generic: 新建项目
+  - button "› QA对照项目B-20261014" [expanded]:
+    - generic: ›
+    - generic: QA对照项目B-20261014
+  - link "需求 1":
+    - /url: /projects/90ec2cc81b38493793ffa4390cbead91/requirements
+    - generic: 需求
+    - emphasis: "1"
+  - link "访谈记录":
+    - /url: /projects/90ec2cc81b38493793ffa4390cbead91/interviews
+    - generic: 访谈记录
+  - link "团队任务":
+    - /url: /projects/90ec2cc81b38493793ffa4390cbead91/tasks/board
+    - generic: 团队任务
+  - link "版本排期":
+    - /url: /projects/90ec2cc81b38493793ffa4390cbead91/versions
+    - generic: 版本排期
+  - button "› QA交互验证-20261014" [expanded]:
+    - generic: ›
+    - generic: QA交互验证-20261014
+  - link "需求 6":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/requirements
+    - generic: 需求
+    - emphasis: "6"
+  - link "访谈记录":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/interviews
+    - generic: 访谈记录
+  - link "团队任务":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/tasks/board
+    - generic: 团队任务
+  - link "版本排期":
+    - /url: /projects/c10a7c9adee74090a2bc2bd15644c449/versions
+    - generic: 版本排期
+  - strong: 用户与部门
+  - emphasis: 管理员专属
+  - link "部门管理":
+    - /url: /admin/departments
+    - generic: 部门管理
+  - link "邀请码管理":
+    - /url: /admin/invitations
+    - generic: 邀请码管理
+- main:
+  - strong: 全部项目
+  - generic: /
+  - strong: 需求
+  - textbox "搜索需求内容"
+  - button "AI批量分析":
+    - generic: AI批量分析
+  - button "提交新需求":
+    - generic: 提交新需求
+  - paragraph: 按 AI 建议优先级分组 · 点击卡片查看完整分析结果
+  - strong: 紧急
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 高优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 中优先级
+  - generic: "3"
+  - article:
+    - checkbox
+    - generic: REQ-8A17D4
+    - generic: P2
+    - paragraph: QA-B专属：该需求只属于对照项目B，不应出现在项目A。
+    - generic: 分析完成
+    - generic: 新增功能
+  - article:
+    - checkbox
+    - generic: REQ-13F913
+    - generic: P2
+    - paragraph: QA-慢速：快速双击提交应只生成一条需求。
+    - generic: 分析完成
+    - generic: 新增功能
+  - article:
+    - checkbox
+    - generic: REQ-B5CC93
+    - generic: P2
+    - paragraph: QA-成功：产品经理希望按关键词搜索需求，减少翻找时间。
+    - generic: 分析完成
+    - generic: 新增功能
+  - strong: 低优先级
+  - generic: "0"
+  - generic: 暂无需求
+  - strong: 待分析
+  - generic: "4"
+  - article:
+    - checkbox
+    - generic: REQ-99C266
+    - paragraph: QA-非法结果：分析结果缺少字段时仍应保留原始需求。
+    - generic: 分析失败
+    - generic: 需求保存成功，但AI分析失败，可稍后重试
+  - article:
+    - checkbox
+    - generic: REQ-D40B71
+    - paragraph: QA-超时：分析超时后仍应保存需求并显示提示。
+    - generic: 分析失败
+    - generic: 需求保存成功，但AI分析失败，可稍后重试
+  - article:
+    - checkbox
+    - generic: REQ-3EB81C
+    - paragraph: QA-连接失败：即使AI服务不可用，也必须保存原始需求并明确反馈。
+    - generic: 分析失败
+    - generic: 需求保存成功，但AI分析失败，可稍后重试
+  - article:
+    - checkbox
+    - generic: REQ-683ED3
+    - paragraph: QA-连接失败：即使AI服务不可用，也必须保存原始需求并明确反馈。
+    - generic: 分析失败
+    - generic: 需求保存成功，但AI分析失败，可稍后重试
+  - generic: 共 7 条需求
+  - combobox
+  - generic: 20条/页
+  - button "上一页" [disabled]:
+  - list:
+    - listitem "第 1 页": "1"
+  - button "下一页" [disabled]:
