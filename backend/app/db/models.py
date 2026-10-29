@@ -629,3 +629,6 @@ class TaskComment(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     agent_run_id: Mapped[str | None] = mapped_column(String(32))
     created_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+# Register independent business modules in the shared SQLAlchemy metadata.
+from app.knowledge import models as knowledge_models  # noqa: E402,F401

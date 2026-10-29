@@ -33,3 +33,6 @@ api_router.include_router(organization.users_router, prefix="/users", tags=["use
 
 from app.api.routes import task_comments
 api_router.include_router(task_comments.router, prefix="/projects", tags=["task-comments"])
+
+from app.api.routes import knowledge
+api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledge"])

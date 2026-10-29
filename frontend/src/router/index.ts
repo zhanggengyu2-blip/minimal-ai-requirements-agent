@@ -15,6 +15,7 @@ export const router = createRouter({
       component: () => import('../layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
+        { path: 'knowledge', name: 'knowledge', component: () => import('../views/KnowledgeView.vue') },
         { path: '', redirect: { name: 'projects' } },
         {
           path: 'projects',

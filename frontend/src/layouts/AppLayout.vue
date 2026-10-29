@@ -101,6 +101,7 @@ onMounted(refreshProjects)
   <div class="app-shell routed-app-shell">
     <header class="topbar app-topbar">
       <RouterLink class="brand brand-link" :to="{ name: 'projects' }">极简 AI 团队需求管理智能体</RouterLink>
+      <RouterLink class="interview-entry" :to="{ name: 'knowledge' }">知识库</RouterLink>
       <el-dropdown trigger="click" class="user-menu">
         <button type="button" class="user-menu-trigger">
           <span class="user-avatar">{{ auth.currentUser.value?.name.slice(0, 1) }}</span>

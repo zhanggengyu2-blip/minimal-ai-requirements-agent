@@ -44,6 +44,13 @@ class Settings(BaseSettings):
     csrf_header_name: str = "X-CSRF-Token"
     csrf_enabled: bool = True
 
+    knowledge_embedding_base_url: str = "https://api.openai.com/v1"
+    knowledge_embedding_api_key: str = ""
+    knowledge_embedding_model: str = ""
+    knowledge_rerank_base_url: str = ""
+    knowledge_rerank_api_key: str = ""
+    knowledge_rerank_model: str = ""
+
     dify_base_url: str = "http://127.0.0.1/v1"
     dify_api_key: str = ""
     dify_workflow_path: str = "/workflows/run"
