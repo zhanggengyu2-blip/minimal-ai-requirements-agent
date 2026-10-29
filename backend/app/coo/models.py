@@ -69,3 +69,21 @@ class CooAction(Base):
     error: Mapped[str|None]=mapped_column(String(300))
     created_time: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
     decided_time: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
+
+class BusinessEvent(Base):
+    __tablename__='coo_business_event'
+    id: Mapped[str]=mapped_column(String(32),primary_key=True,default=new_id)
+    dedupe_key: Mapped[str]=mapped_column(String(200),nullable=False,unique=True)
+    event_type: Mapped[str]=mapped_column(String(50),nullable=False)
+    project_id: Mapped[str]=mapped_column(ForeignKey('project.id',ondelete='CASCADE'),nullable=False,index=True)
+    actor_id: Mapped[str]=mapped_column(ForeignKey('user_account.id'),nullable=False,index=True)
+    origin: Mapped[str]=mapped_column(String(20),nullable=False,default='HUMAN')
+    payload: Mapped[dict]=mapped_column(JSON,nullable=False)
+    status: Mapped[str]=mapped_column(String(24),nullable=False,default='PENDING',index=True)
+    attempts: Mapped[int]=mapped_column(Integer,nullable=False,default=0)
+    claim_token: Mapped[str|None]=mapped_column(String(32))
+    lease_until: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
+    run_id: Mapped[str|None]=mapped_column(ForeignKey('coo_agent_run.id',ondelete='SET NULL'))
+    error: Mapped[str|None]=mapped_column(String(500))
+    created_time: Mapped[datetime]=mapped_column(DateTime(timezone=True),default=utc_now)
+    processed_time: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))

@@ -12,7 +12,7 @@ from app.services.project_service import ProjectService
 from app.knowledge.service import KnowledgeService
 from app.knowledge.providers import request_deadline
 from app.knowledge.retrieval import validate_citations
-from .models import CooSession, CooMessage, AgentRun, CooToolCall, CooAction
+from .models import CooSession, CooMessage, AgentRun, CooToolCall, CooAction, BusinessEvent
 from .schemas import FinalAnswer
 from .tools import BusinessTools, REGISTRY, definitions
 from .provider import ModelClient
@@ -111,7 +111,11 @@ class CooService:
     async def decide(self,ident,decision):
         action=self.db.get(CooAction,ident)
         if not action or action.owner_id!=self.actor.id:raise NotFoundError('操作建议不存在')
-        self.check_run(action.run_id)
+        associated_run=self.check_run(action.run_id)
+        if associated_run.event_id:
+            event=self.db.get(BusinessEvent,associated_run.event_id)
+            if not event or event.run_id!=associated_run.id or event.status not in ('SUCCEEDED','FAILED'):
+                raise ConflictError('事件仍在执行或已重新处理，请刷新后查看最新建议')
         ProjectService(self.db).require_writable(action.project_id,actor=self.actor)
         if action.status=='SUCCEEDED':return self.run_view(self.db.get(AgentRun,action.run_id))
         if action.status!='PENDING':raise ConflictError('操作建议已经处理，请刷新')

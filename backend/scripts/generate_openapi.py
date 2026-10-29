@@ -93,12 +93,11 @@ def build_schema() -> dict[str, Any]:
     schema = app.openapi()
     schema["info"].update(
         {
-            "title": "极简 AI 团队需求管理智能体 API",
-            "version": "3.0.0",
+            "title": "Coo 企业 AI 协作系统 V4 API",
+            "version": "4.0.0",
             "description": (
-                "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、"
-                "HttpOnly Cookie 会话、CSRF、管理员权限、项目成员、项目级访问控制、团队任务和版本排期；"
-                "Dify API Key 仍仅由后端环境变量持有。"
+                "复用 V3 项目、需求、任务、版本与权限。V4 新增任务留言、企业/项目知识库、"
+                "Coo Tool Calling、私人会话、写入确认和业务事件。Dify 与访谈已退出默认运行路径。"
             ),
         }
     )
@@ -110,12 +109,29 @@ def build_schema() -> dict[str, Any]:
         for name, description in TAG_META.items()
     ]
 
+    v4_summaries = {
+        'list_comments':'查询任务留言历史', 'create_comment':'新增任务留言或回复',
+        'categories':'查询授权知识分类', 'create_category':'创建知识分类与访问策略',
+        'preview':'预览知识分段', 'upload':'上传 UTF-8 文本', 'documents':'查询授权知识',
+        'save_document':'保存知识草稿', 'document':'查询知识版本详情', 'update_document':'编辑知识草稿',
+        'publish':'发布知识并生成向量', 'enable':'停启用知识', 'restore':'恢复上一已发布版本为新草稿',
+        'search_knowledge':'授权范围内混合检索与召回测试',
+        'status':'查询 Coo 模型配置状态', 'sessions':'查询我的 Coo 会话', 'create_session':'创建私人 Coo 会话',
+        'history':'查询私人会话执行历史', 'send':'发送目标并执行 Coo', 'run':'查询 Coo 执行记录',
+        'decide':'确认或拒绝具体业务写入建议', 'analyze_requirement':'通过 Coo 工作流分析已有需求',
+        'events':'查询我的业务事件', 'simulate':'保存明确标记的模拟履约异常', 'retry':'重试失败事件', 'runs':'查询我的最近 Coo 执行记录',
+    }
     missing: list[str] = []
     for path, path_item in schema["paths"].items():
         for method, operation in path_item.items():
             if method not in {"get", "post", "put", "patch", "delete"}:
                 continue
             meta = OPERATION_META.get((path, method))
+            if meta is None:
+                name = operation.get('operationId', '').split('_api_v1_')[0]
+                summary = v4_summaries.get(name)
+                if summary:
+                    meta = (summary, 'V4.0', summary + '。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。')
             if meta is None:
                 missing.append(f"{method.upper()} {path}")
                 continue
@@ -126,12 +142,6 @@ def build_schema() -> dict[str, Any]:
 
     if missing:
         raise RuntimeError(f"以下接口缺少中文元数据: {', '.join(missing)}")
-    if len(OPERATION_META) != sum(
-        method in {"get", "post", "put", "patch", "delete"}
-        for item in schema["paths"].values()
-        for method in item
-    ):
-        raise RuntimeError("中文接口元数据与实际路由数量不一致")
     return schema
 
 

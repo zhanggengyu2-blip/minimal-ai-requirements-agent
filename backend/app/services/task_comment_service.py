@@ -37,6 +37,11 @@ class TaskCommentService:
         row = TaskComment(project_id=project_id, task_id=task_id, author_id=actor.id,
             actor_type="COO" if agent_run_id else "HUMAN", agent_run_id=agent_run_id, **payload.model_dump())
         self.db.add(row)
+        self.db.flush()
+        if not agent_run_id:
+            from app.coo.events import enqueue
+            enqueue(self.db, key=f'task.comment:{row.id}', event_type='TASK_COMMENT_CREATED', project_id=project_id,
+                actor_id=actor.id, payload={'task_id':task_id,'comment_id':row.id})
         if commit:
             self.db.commit()
         else:

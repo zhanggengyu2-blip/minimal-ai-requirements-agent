@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "极简 AI 团队需求管理智能体 API",
-    "version": "3.0.0",
-    "description": "供 Apifox 导入和本地联调。V3.0 新增邀请注册、统一密码登录、HttpOnly Cookie 会话、CSRF、管理员权限、项目成员、项目级访问控制、团队任务和版本排期；Dify API Key 仍仅由后端环境变量持有。"
+    "title": "Coo 企业 AI 协作系统 V4 API",
+    "version": "4.0.0",
+    "description": "复用 V3 项目、需求、任务、版本与权限。V4 新增任务留言、企业/项目知识库、Coo Tool Calling、私人会话、写入确认和业务事件。Dify 与访谈已退出默认运行路径。"
   },
   "paths": {
     "/api/v1/health": {
@@ -2016,71 +2016,6 @@
         "x-api-version": "V1.1"
       }
     },
-    "/api/v1/requirements/{requirement_id}/interview": {
-      "get": {
-        "tags": [
-          "requirements"
-        ],
-        "summary": "【V2.0】 查询需求关联访谈",
-        "operationId": "get_requirement_interview_api_v1_requirements__requirement_id__interview_get",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "requirement_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Requirement Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "从正式需求回查完整访谈记录。",
-        "x-api-version": "V2.0"
-      }
-    },
     "/api/v1/requirements/batch-analyze": {
       "post": {
         "tags": [
@@ -2147,13 +2082,13 @@
         "x-api-version": "V1.1"
       }
     },
-    "/api/v1/interviews": {
+    "/api/v1/requirements/{requirement_id}/analyze": {
       "post": {
         "tags": [
-          "interviews"
+          "requirements"
         ],
-        "summary": "【V2.0】 创建访谈会话",
-        "operationId": "create_interview_api_v1_interviews_post",
+        "summary": "【V4.0】 通过 Coo 工作流分析已有需求",
+        "operationId": "analyze_requirement_api_v1_requirements__requirement_id__analyze_post",
         "security": [
           {
             "SessionCookie": []
@@ -2161,270 +2096,12 @@
         ],
         "parameters": [
           {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "保存原始需求并调用 Dify 访谈 Workflow 生成第一轮追问。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/drafts": {
-      "get": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 查询未完成访谈",
-        "operationId": "list_interview_drafts_api_v1_interviews_drafts_get",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "default": 20,
-              "title": "Limit"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_list_InterviewDraftRead__"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "查询草稿、访谈中、待确认或失败状态的会话。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/attachments": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 上传访谈图片",
-        "operationId": "upload_interview_attachment_api_v1_interviews_attachments_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/Body_upload_interview_attachment_api_v1_interviews_attachments_post"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewAttachmentRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "上传 PNG、JPG/JPEG 或 WEBP 图片，返回供创建或回答接口关联的附件 ID。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/attachments/{attachment_id}/content": {
-      "get": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 预览访谈图片",
-        "operationId": "preview_interview_attachment_api_v1_interviews_attachments__attachment_id__content_get",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "attachment_id",
+            "name": "requirement_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Attachment Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "按附件 ID 返回原始图片内容，用于访谈工作台预览。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}": {
-      "get": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 查询访谈详情",
-        "operationId": "get_interview_api_v1_interviews__session_id__get",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
+              "title": "Requirement Id"
             }
           },
           {
@@ -2450,7 +2127,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
+                  "$ref": "#/components/schemas/ApiResponse_RequirementRead_"
                 }
               }
             }
@@ -2466,513 +2143,8 @@
             }
           }
         },
-        "description": "返回对话记录、需求卡片、完整度和当前问题。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/messages": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 回答访谈问题",
-        "operationId": "answer_interview_api_v1_interviews__session_id__messages_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewMessageCreate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "保存用户回答并调用 Dify 生成字段抽取结果和下一问。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/actions/skip": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 跳过当前问题",
-        "operationId": "skip_interview_question_api_v1_interviews__session_id__actions_skip_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewActionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "跳过当前字段；连续两次跳过会进入待确认。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/actions/unknown": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 标记为不清楚",
-        "operationId": "mark_interview_unknown_api_v1_interviews__session_id__actions_unknown_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewActionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "将当前字段标记为不清楚；与跳过共享连续计数。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/actions/summarize": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 按当前信息整理",
-        "operationId": "summarize_interview_api_v1_interviews__session_id__actions_summarize_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "立即结束追问并进入需求确认。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/summary": {
-      "patch": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 编辑需求总结",
-        "operationId": "update_interview_summary_api_v1_interviews__session_id__summary_patch",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewSummaryUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "人工修正右侧需求卡片和标题，人工值优先于后续 AI 抽取。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/confirm": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 确认并创建需求",
-        "operationId": "confirm_interview_api_v1_interviews__session_id__confirm_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterviewConfirmRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewConfirmResult_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "将访谈结果转为正式需求并调用 V1.1 需求分析 Workflow。",
-        "x-api-version": "V2.0"
-      }
-    },
-    "/api/v1/interviews/{session_id}/abandon": {
-      "post": {
-        "tags": [
-          "interviews"
-        ],
-        "summary": "【V2.0】 放弃访谈",
-        "operationId": "abandon_interview_api_v1_interviews__session_id__abandon_post",
-        "security": [
-          {
-            "SessionCookie": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "session_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Session Id"
-            }
-          },
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Csrf-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_InterviewSessionRead_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "description": "结束未提交的访谈会话。",
-        "x-api-version": "V2.0"
+        "description": "通过 Coo 工作流分析已有需求。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
       }
     },
     "/api/v1/departments": {
@@ -3643,6 +2815,1676 @@
         "description": "供项目成员和负责人选择器按姓名或部门查询已注册用户。",
         "x-api-version": "V3.0"
       }
+    },
+    "/api/v1/projects/{project_id}/tasks/{task_id}/comments": {
+      "get": {
+        "tags": [
+          "task-comments"
+        ],
+        "summary": "【V4.0】 查询任务留言历史",
+        "operationId": "list_comments_api_v1_projects__project_id__tasks__task_id__comments_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_list_TaskCommentRead__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询任务留言历史。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      },
+      "post": {
+        "tags": [
+          "task-comments"
+        ],
+        "summary": "【V4.0】 新增任务留言或回复",
+        "operationId": "create_comment_api_v1_projects__project_id__tasks__task_id__comments_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCommentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse_TaskCommentRead_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "新增任务留言或回复。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/categories": {
+      "get": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 查询授权知识分类",
+        "operationId": "categories_api_v1_knowledge_categories_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询授权知识分类。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      },
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 创建知识分类与访问策略",
+        "operationId": "create_category_api_v1_knowledge_categories_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "创建知识分类与访问策略。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/preview": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 预览知识分段",
+        "operationId": "preview_api_v1_knowledge_preview_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Preview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "预览知识分段。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/upload": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 上传 UTF-8 文本",
+        "operationId": "upload_api_v1_knowledge_upload_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_api_v1_knowledge_upload_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "上传 UTF-8 文本。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/documents": {
+      "get": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 查询授权知识",
+        "operationId": "documents_api_v1_knowledge_documents_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询授权知识。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      },
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 保存知识草稿",
+        "operationId": "save_document_api_v1_knowledge_documents_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "保存知识草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/documents/{ident}": {
+      "get": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 查询知识版本详情",
+        "operationId": "document_api_v1_knowledge_documents__ident__get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询知识版本详情。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      },
+      "put": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 编辑知识草稿",
+        "operationId": "update_document_api_v1_knowledge_documents__ident__put",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "编辑知识草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/documents/{ident}/publish": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 发布知识并生成向量",
+        "operationId": "publish_api_v1_knowledge_documents__ident__publish_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "发布知识并生成向量。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/documents/{ident}/enabled": {
+      "patch": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 停启用知识",
+        "operationId": "enable_api_v1_knowledge_documents__ident__enabled_patch",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnableInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "停启用知识。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/documents/{ident}/restore": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 恢复上一已发布版本为新草稿",
+        "operationId": "restore_api_v1_knowledge_documents__ident__restore_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "恢复上一已发布版本为新草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/knowledge/search": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "【V4.0】 授权范围内混合检索与召回测试",
+        "operationId": "search_knowledge_api_v1_knowledge_search_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "授权范围内混合检索与召回测试。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/status": {
+      "get": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 查询 Coo 模型配置状态",
+        "operationId": "status_api_v1_coo_status_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询 Coo 模型配置状态。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/sessions": {
+      "get": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 查询我的 Coo 会话",
+        "operationId": "sessions_api_v1_coo_sessions_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询我的 Coo 会话。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      },
+      "post": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 创建私人 Coo 会话",
+        "operationId": "create_session_api_v1_coo_sessions_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "创建私人 Coo 会话。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/sessions/{ident}": {
+      "get": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 查询私人会话执行历史",
+        "operationId": "history_api_v1_coo_sessions__ident__get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询私人会话执行历史。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/sessions/{ident}/messages": {
+      "post": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 发送目标并执行 Coo",
+        "operationId": "send_api_v1_coo_sessions__ident__messages_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "发送目标并执行 Coo。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/runs/{ident}": {
+      "get": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 查询 Coo 执行记录",
+        "operationId": "run_api_v1_coo_runs__ident__get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询 Coo 执行记录。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/actions/{ident}/decision": {
+      "post": {
+        "tags": [
+          "coo"
+        ],
+        "summary": "【V4.0】 确认或拒绝具体业务写入建议",
+        "operationId": "decide_api_v1_coo_actions__ident__decision_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Decision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "确认或拒绝具体业务写入建议。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/events": {
+      "get": {
+        "tags": [
+          "coo-events"
+        ],
+        "summary": "【V4.0】 查询我的业务事件",
+        "operationId": "events_api_v1_coo_events_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询我的业务事件。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/events/simulated-order": {
+      "post": {
+        "tags": [
+          "coo-events"
+        ],
+        "summary": "【V4.0】 保存明确标记的模拟履约异常",
+        "operationId": "simulate_api_v1_coo_events_simulated_order_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulatedOrderEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "保存明确标记的模拟履约异常。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/events/{ident}/retry": {
+      "post": {
+        "tags": [
+          "coo-events"
+        ],
+        "summary": "【V4.0】 重试失败事件",
+        "operationId": "retry_api_v1_coo_events__ident__retry_post",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ident",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Ident"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "重试失败事件。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
+    },
+    "/api/v1/coo/runs": {
+      "get": {
+        "tags": [
+          "coo-events"
+        ],
+        "summary": "【V4.0】 查询我的最近 Coo 执行记录",
+        "operationId": "runs_api_v1_coo_runs_get",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "description": "查询我的最近 Coo 执行记录。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。",
+        "x-api-version": "V4.0"
+      }
     }
   },
   "components": {
@@ -3756,105 +4598,6 @@
           "data"
         ],
         "title": "ApiResponse[DepartmentRead]"
-      },
-      "ApiResponse_InterviewAttachmentRead_": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "default": "OK"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "default": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/InterviewAttachmentRead"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Request Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "title": "ApiResponse[InterviewAttachmentRead]"
-      },
-      "ApiResponse_InterviewConfirmResult_": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "default": "OK"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "default": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/InterviewConfirmResult"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Request Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "title": "ApiResponse[InterviewConfirmResult]"
-      },
-      "ApiResponse_InterviewSessionRead_": {
-        "properties": {
-          "code": {
-            "type": "string",
-            "title": "Code",
-            "default": "OK"
-          },
-          "message": {
-            "type": "string",
-            "title": "Message",
-            "default": "success"
-          },
-          "data": {
-            "$ref": "#/components/schemas/InterviewSessionRead"
-          },
-          "request_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Request Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "title": "ApiResponse[InterviewSessionRead]"
       },
       "ApiResponse_InvitationRead_": {
         "properties": {
@@ -4186,6 +4929,39 @@
           "data"
         ],
         "title": "ApiResponse[RequirementRead]"
+      },
+      "ApiResponse_TaskCommentRead_": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "OK"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TaskCommentRead"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "ApiResponse[TaskCommentRead]"
       },
       "ApiResponse_TaskLaneOrderRead_": {
         "properties": {
@@ -4529,7 +5305,7 @@
         ],
         "title": "ApiResponse[list[DepartmentOption]]"
       },
-      "ApiResponse_list_InterviewDraftRead__": {
+      "ApiResponse_list_TaskCommentRead__": {
         "properties": {
           "code": {
             "type": "string",
@@ -4543,7 +5319,7 @@
           },
           "data": {
             "items": {
-              "$ref": "#/components/schemas/InterviewDraftRead"
+              "$ref": "#/components/schemas/TaskCommentRead"
             },
             "type": "array",
             "title": "Data"
@@ -4564,7 +5340,7 @@
         "required": [
           "data"
         ],
-        "title": "ApiResponse[list[InterviewDraftRead]]"
+        "title": "ApiResponse[list[TaskCommentRead]]"
       },
       "AuthSessionRead": {
         "properties": {
@@ -4629,7 +5405,7 @@
         ],
         "title": "BatchAnalyzeRequest"
       },
-      "Body_upload_interview_attachment_api_v1_interviews_attachments_post": {
+      "Body_upload_api_v1_knowledge_upload_post": {
         "properties": {
           "file": {
             "type": "string",
@@ -4641,7 +5417,96 @@
         "required": [
           "file"
         ],
-        "title": "Body_upload_interview_attachment_api_v1_interviews_attachments_post"
+        "title": "Body_upload_api_v1_knowledge_upload_post"
+      },
+      "CategoryCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "ENTERPRISE",
+              "PROJECT"
+            ],
+            "title": "Scope"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "access_policy": {
+            "type": "string",
+            "enum": [
+              "ALL_MEMBERS",
+              "DEPARTMENT",
+              "PROJECT_MEMBERS"
+            ],
+            "title": "Access Policy"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "scope",
+          "access_policy"
+        ],
+        "title": "CategoryCreate"
+      },
+      "ChunkSettings": {
+        "properties": {
+          "separator": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Separator",
+            "default": "\n\n"
+          },
+          "target_chars": {
+            "type": "integer",
+            "maximum": 4000.0,
+            "minimum": 100.0,
+            "title": "Target Chars",
+            "default": 600
+          },
+          "overlap_chars": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Overlap Chars",
+            "default": 80
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ChunkSettings"
       },
       "CurrentUserRead": {
         "properties": {
@@ -4680,6 +5545,24 @@
           "created_time"
         ],
         "title": "CurrentUserRead"
+      },
+      "Decision": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT"
+            ],
+            "title": "Decision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "Decision"
       },
       "DepartmentCreate": {
         "properties": {
@@ -4774,86 +5657,88 @@
         ],
         "title": "DepartmentUpdate"
       },
-      "DifyInterviewField": {
+      "DocumentSave": {
         "properties": {
-          "value": {
+          "content": {
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 500000,
             "minLength": 1,
-            "title": "Value"
+            "title": "Content"
           },
-          "evidence_message_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "maxItems": 20,
-            "title": "Evidence Message Ids"
+          "settings": {
+            "$ref": "#/components/schemas/ChunkSettings"
           },
-          "source": {
+          "title": {
             "type": "string",
-            "enum": [
-              "USER_INPUT",
-              "USER_EDIT"
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "category_id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 32,
+            "title": "Category Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "default": 0
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Source"
+            "title": "Effective From"
+          },
+          "effective_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Until"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "value",
-          "evidence_message_ids",
-          "source"
+          "content",
+          "title",
+          "category_id"
         ],
-        "title": "DifyInterviewField"
+        "title": "DocumentSave"
       },
-      "DifyInterviewQuestion": {
+      "EnableInput": {
         "properties": {
-          "text": {
-            "type": "string",
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Text"
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
           },
-          "target_field": {
-            "type": "string",
-            "enum": [
-              "target_user",
-              "usage_scenario",
-              "user_goal",
-              "current_problem",
-              "expected_result",
-              "proposed_solution",
-              "frequency",
-              "impact_scope",
-              "bug_steps",
-              "actual_result",
-              "environment"
-            ],
-            "title": "Target Field"
-          },
-          "reason_code": {
-            "type": "string",
-            "enum": [
-              "MISSING_CORE_FIELD",
-              "MISSING_BUG_FIELD",
-              "CLARIFY_CONFLICT",
-              "SEPARATE_PROBLEM_FROM_SOLUTION",
-              "CLARIFY_MULTIPLE_REQUESTS",
-              "MISSING_RECOMMENDED_FIELD"
-            ],
-            "title": "Reason Code"
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "text",
-          "target_field",
-          "reason_code"
+          "expected_revision",
+          "enabled"
         ],
-        "title": "DifyInterviewQuestion"
+        "title": "EnableInput"
       },
       "HTTPValidationError": {
         "properties": {
@@ -4867,653 +5752,6 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
-      },
-      "InterviewActionRequest": {
-        "properties": {
-          "client_message_id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Client Message Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "client_message_id"
-        ],
-        "title": "InterviewActionRequest"
-      },
-      "InterviewActionType": {
-        "type": "string",
-        "enum": [
-          "INITIAL",
-          "ANSWER",
-          "SKIP",
-          "UNKNOWN",
-          "DIRECT_SUMMARY"
-        ],
-        "title": "InterviewActionType"
-      },
-      "InterviewAttachmentRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "session_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Session Id"
-          },
-          "message_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message Id"
-          },
-          "uploaded_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Uploaded By"
-          },
-          "original_name": {
-            "type": "string",
-            "title": "Original Name"
-          },
-          "mime_type": {
-            "type": "string",
-            "title": "Mime Type"
-          },
-          "size_bytes": {
-            "type": "integer",
-            "title": "Size Bytes"
-          },
-          "sha256": {
-            "type": "string",
-            "title": "Sha256"
-          },
-          "preview_url": {
-            "type": "string",
-            "title": "Preview Url"
-          },
-          "created_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created Time"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "message_id",
-          "uploaded_by",
-          "original_name",
-          "mime_type",
-          "size_bytes",
-          "sha256",
-          "preview_url",
-          "created_time"
-        ],
-        "title": "InterviewAttachmentRead"
-      },
-      "InterviewConfirmRequest": {
-        "properties": {
-          "idempotency_key": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Idempotency Key"
-          }
-        },
-        "type": "object",
-        "required": [
-          "idempotency_key"
-        ],
-        "title": "InterviewConfirmRequest"
-      },
-      "InterviewConfirmResult": {
-        "properties": {
-          "session": {
-            "$ref": "#/components/schemas/InterviewSessionRead"
-          },
-          "requirement": {
-            "$ref": "#/components/schemas/RequirementRead"
-          }
-        },
-        "type": "object",
-        "required": [
-          "session",
-          "requirement"
-        ],
-        "title": "InterviewConfirmResult"
-      },
-      "InterviewCreate": {
-        "properties": {
-          "project_id": {
-            "type": "string",
-            "maxLength": 32,
-            "minLength": 32,
-            "title": "Project Id"
-          },
-          "raw_content": {
-            "type": "string",
-            "maxLength": 10000,
-            "title": "Raw Content",
-            "default": ""
-          },
-          "client_message_id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Client Message Id"
-          },
-          "attachment_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "maxItems": 5,
-            "title": "Attachment Ids"
-          }
-        },
-        "type": "object",
-        "required": [
-          "project_id",
-          "client_message_id"
-        ],
-        "title": "InterviewCreate"
-      },
-      "InterviewDraftRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "project_id": {
-            "type": "string",
-            "title": "Project Id"
-          },
-          "status": {
-            "$ref": "#/components/schemas/InterviewStatus"
-          },
-          "raw_content": {
-            "type": "string",
-            "title": "Raw Content"
-          },
-          "summary_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary Title"
-          },
-          "round_count": {
-            "type": "integer",
-            "title": "Round Count"
-          },
-          "updated_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Time"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "project_id",
-          "status",
-          "raw_content",
-          "summary_title",
-          "round_count",
-          "updated_time"
-        ],
-        "title": "InterviewDraftRead"
-      },
-      "InterviewMessageCreate": {
-        "properties": {
-          "content": {
-            "type": "string",
-            "maxLength": 10000,
-            "title": "Content",
-            "default": ""
-          },
-          "client_message_id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Client Message Id"
-          },
-          "attachment_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "maxItems": 5,
-            "title": "Attachment Ids"
-          }
-        },
-        "type": "object",
-        "required": [
-          "client_message_id"
-        ],
-        "title": "InterviewMessageCreate"
-      },
-      "InterviewMessageRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "session_id": {
-            "type": "string",
-            "title": "Session Id"
-          },
-          "sequence_no": {
-            "type": "integer",
-            "title": "Sequence No"
-          },
-          "role": {
-            "$ref": "#/components/schemas/InterviewMessageRole"
-          },
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "action_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/InterviewActionType"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "target_field": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Field"
-          },
-          "reason_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason Code"
-          },
-          "client_message_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Client Message Id"
-          },
-          "agent_run_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Agent Run Id"
-          },
-          "attachments": {
-            "items": {
-              "$ref": "#/components/schemas/InterviewAttachmentRead"
-            },
-            "type": "array",
-            "title": "Attachments"
-          },
-          "created_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created Time"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "session_id",
-          "sequence_no",
-          "role",
-          "content",
-          "action_type",
-          "target_field",
-          "reason_code",
-          "client_message_id",
-          "agent_run_id",
-          "attachments",
-          "created_time"
-        ],
-        "title": "InterviewMessageRead"
-      },
-      "InterviewMessageRole": {
-        "type": "string",
-        "enum": [
-          "USER",
-          "AGENT",
-          "SYSTEM_EVENT"
-        ],
-        "title": "InterviewMessageRole"
-      },
-      "InterviewSessionRead": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "project_id": {
-            "type": "string",
-            "title": "Project Id"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "source_channel": {
-            "$ref": "#/components/schemas/SourceChannel"
-          },
-          "project_resolve_mode": {
-            "$ref": "#/components/schemas/ProjectResolveMode"
-          },
-          "status": {
-            "$ref": "#/components/schemas/InterviewStatus"
-          },
-          "raw_content": {
-            "type": "string",
-            "title": "Raw Content"
-          },
-          "request_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/RequirementType"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "current_card": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "$ref": "#/components/schemas/DifyInterviewField"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "propertyNames": {
-              "enum": [
-                "target_user",
-                "usage_scenario",
-                "user_goal",
-                "current_problem",
-                "expected_result",
-                "proposed_solution",
-                "frequency",
-                "impact_scope",
-                "bug_steps",
-                "actual_result",
-                "environment"
-              ]
-            },
-            "type": "object",
-            "title": "Current Card"
-          },
-          "skipped_fields": {
-            "items": {
-              "type": "string",
-              "enum": [
-                "target_user",
-                "usage_scenario",
-                "user_goal",
-                "current_problem",
-                "expected_result",
-                "proposed_solution",
-                "frequency",
-                "impact_scope",
-                "bug_steps",
-                "actual_result",
-                "environment"
-              ]
-            },
-            "type": "array",
-            "title": "Skipped Fields"
-          },
-          "completeness_score": {
-            "type": "integer",
-            "title": "Completeness Score"
-          },
-          "round_count": {
-            "type": "integer",
-            "title": "Round Count"
-          },
-          "consecutive_skip_count": {
-            "type": "integer",
-            "title": "Consecutive Skip Count"
-          },
-          "stop_reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Stop Reason"
-          },
-          "summary_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary Title"
-          },
-          "clarified_content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Clarified Content"
-          },
-          "requirement_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Requirement Id"
-          },
-          "current_question": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/DifyInterviewQuestion"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/InterviewMessageRead"
-            },
-            "type": "array",
-            "title": "Messages"
-          },
-          "agent_error_code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Agent Error Code"
-          },
-          "created_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created Time"
-          },
-          "updated_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated Time"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "project_id",
-          "created_by",
-          "source_channel",
-          "project_resolve_mode",
-          "status",
-          "raw_content",
-          "request_type",
-          "current_card",
-          "skipped_fields",
-          "completeness_score",
-          "round_count",
-          "consecutive_skip_count",
-          "stop_reason",
-          "summary_title",
-          "clarified_content",
-          "requirement_id",
-          "current_question",
-          "messages",
-          "agent_error_code",
-          "created_time",
-          "updated_time"
-        ],
-        "title": "InterviewSessionRead"
-      },
-      "InterviewStatus": {
-        "type": "string",
-        "enum": [
-          "DRAFT",
-          "INTERVIEWING",
-          "CONFIRMING",
-          "SUBMITTED",
-          "ABANDONED",
-          "FAILED"
-        ],
-        "title": "InterviewStatus"
-      },
-      "InterviewSummaryUpdate": {
-        "properties": {
-          "fields": {
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "propertyNames": {
-              "enum": [
-                "target_user",
-                "usage_scenario",
-                "user_goal",
-                "current_problem",
-                "expected_result",
-                "proposed_solution",
-                "frequency",
-                "impact_scope",
-                "bug_steps",
-                "actual_result",
-                "environment"
-              ]
-            },
-            "type": "object",
-            "maxProperties": 11,
-            "minProperties": 1,
-            "title": "Fields"
-          },
-          "summary_title": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 100,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary Title"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "fields"
-        ],
-        "title": "InterviewSummaryUpdate"
       },
       "InvitationCreate": {
         "properties": {
@@ -5662,6 +5900,27 @@
           "DISABLED"
         ],
         "title": "InvitationStatus"
+      },
+      "MessageCreate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "allow_comments": {
+            "type": "boolean",
+            "title": "Allow Comments",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "MessageCreate"
       },
       "PageData_DepartmentRead_": {
         "properties": {
@@ -5832,6 +6091,25 @@
           "page_size"
         ],
         "title": "PageData[UserRead]"
+      },
+      "Preview": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 500000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/ChunkSettings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "Preview"
       },
       "ProjectCreate": {
         "properties": {
@@ -6061,15 +6339,6 @@
           "updated_time"
         ],
         "title": "ProjectRead"
-      },
-      "ProjectResolveMode": {
-        "type": "string",
-        "enum": [
-          "USER_SELECTED",
-          "ENTRY_BOUND",
-          "CHANNEL_MAPPED"
-        ],
-        "title": "ProjectResolveMode"
       },
       "ProjectStatus": {
         "type": "string",
@@ -6474,6 +6743,91 @@
         ],
         "title": "RequirementType"
       },
+      "RevisionInput": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision"
+        ],
+        "title": "RevisionInput"
+      },
+      "SearchInput": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Query"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "default": 5
+          },
+          "min_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Score",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "SearchInput"
+      },
+      "SessionCreate": {
+        "properties": {
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title",
+            "default": "与 Coo 协作"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SessionCreate"
+      },
       "SessionCreateRequest": {
         "properties": {
           "department_id": {
@@ -6503,18 +6857,149 @@
         ],
         "title": "SessionCreateRequest"
       },
-      "SourceChannel": {
-        "type": "string",
-        "enum": [
-          "MANAGEMENT_WEB",
-          "PRODUCT_WEB",
-          "MINI_PROGRAM",
-          "WECHAT",
-          "WECOM",
-          "FEISHU",
-          "OTHER"
+      "SimulatedOrderEvent": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 32,
+            "title": "Project Id"
+          },
+          "order_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Order Id"
+          },
+          "hours_waiting": {
+            "type": "integer",
+            "maximum": 720.0,
+            "minimum": 24.0,
+            "title": "Hours Waiting",
+            "default": 72
+          },
+          "warehouse": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Warehouse",
+            "default": "模拟杭州一号仓"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project_id",
+          "order_id"
         ],
-        "title": "SourceChannel"
+        "title": "SimulatedOrderEvent"
+      },
+      "TaskCommentCreate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "TaskCommentCreate"
+      },
+      "TaskCommentRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "project_id": {
+            "type": "string",
+            "title": "Project Id"
+          },
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "author_id": {
+            "type": "string",
+            "title": "Author Id"
+          },
+          "author_name": {
+            "type": "string",
+            "title": "Author Name"
+          },
+          "actor_type": {
+            "type": "string",
+            "enum": [
+              "HUMAN",
+              "COO"
+            ],
+            "title": "Actor Type"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "agent_run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Run Id"
+          },
+          "created_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "task_id",
+          "author_id",
+          "author_name",
+          "actor_type",
+          "parent_id",
+          "content",
+          "agent_run_id",
+          "created_time"
+        ],
+        "title": "TaskCommentRead"
       },
       "TaskCreate": {
         "properties": {

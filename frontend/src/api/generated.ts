@@ -408,26 +408,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/requirements/{requirement_id}/interview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 【V2.0】 查询需求关联访谈
-         * @description 从正式需求回查完整访谈记录。
-         */
-        get: operations["get_requirement_interview_api_v1_requirements__requirement_id__interview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/requirements/batch-analyze": {
         parameters: {
             query?: never;
@@ -448,7 +428,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/interviews": {
+    "/api/v1/requirements/{requirement_id}/analyze": {
         parameters: {
             query?: never;
             header?: never;
@@ -458,230 +438,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 【V2.0】 创建访谈会话
-         * @description 保存原始需求并调用 Dify 访谈 Workflow 生成第一轮追问。
+         * 【V4.0】 通过 Coo 工作流分析已有需求
+         * @description 通过 Coo 工作流分析已有需求。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
          */
-        post: operations["create_interview_api_v1_interviews_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/drafts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 【V2.0】 查询未完成访谈
-         * @description 查询草稿、访谈中、待确认或失败状态的会话。
-         */
-        get: operations["list_interview_drafts_api_v1_interviews_drafts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/attachments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 上传访谈图片
-         * @description 上传 PNG、JPG/JPEG 或 WEBP 图片，返回供创建或回答接口关联的附件 ID。
-         */
-        post: operations["upload_interview_attachment_api_v1_interviews_attachments_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/attachments/{attachment_id}/content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 【V2.0】 预览访谈图片
-         * @description 按附件 ID 返回原始图片内容，用于访谈工作台预览。
-         */
-        get: operations["preview_interview_attachment_api_v1_interviews_attachments__attachment_id__content_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 【V2.0】 查询访谈详情
-         * @description 返回对话记录、需求卡片、完整度和当前问题。
-         */
-        get: operations["get_interview_api_v1_interviews__session_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 回答访谈问题
-         * @description 保存用户回答并调用 Dify 生成字段抽取结果和下一问。
-         */
-        post: operations["answer_interview_api_v1_interviews__session_id__messages_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/actions/skip": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 跳过当前问题
-         * @description 跳过当前字段；连续两次跳过会进入待确认。
-         */
-        post: operations["skip_interview_question_api_v1_interviews__session_id__actions_skip_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/actions/unknown": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 标记为不清楚
-         * @description 将当前字段标记为不清楚；与跳过共享连续计数。
-         */
-        post: operations["mark_interview_unknown_api_v1_interviews__session_id__actions_unknown_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/actions/summarize": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 按当前信息整理
-         * @description 立即结束追问并进入需求确认。
-         */
-        post: operations["summarize_interview_api_v1_interviews__session_id__actions_summarize_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * 【V2.0】 编辑需求总结
-         * @description 人工修正右侧需求卡片和标题，人工值优先于后续 AI 抽取。
-         */
-        patch: operations["update_interview_summary_api_v1_interviews__session_id__summary_patch"];
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 确认并创建需求
-         * @description 将访谈结果转为正式需求并调用 V1.1 需求分析 Workflow。
-         */
-        post: operations["confirm_interview_api_v1_interviews__session_id__confirm_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/interviews/{session_id}/abandon": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 【V2.0】 放弃访谈
-         * @description 结束未提交的访谈会话。
-         */
-        post: operations["abandon_interview_api_v1_interviews__session_id__abandon_post"];
+        post: operations["analyze_requirement_api_v1_requirements__requirement_id__analyze_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -800,6 +560,426 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/tasks/{task_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询任务留言历史
+         * @description 查询任务留言历史。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["list_comments_api_v1_projects__project_id__tasks__task_id__comments_get"];
+        put?: never;
+        /**
+         * 【V4.0】 新增任务留言或回复
+         * @description 新增任务留言或回复。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["create_comment_api_v1_projects__project_id__tasks__task_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询授权知识分类
+         * @description 查询授权知识分类。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["categories_api_v1_knowledge_categories_get"];
+        put?: never;
+        /**
+         * 【V4.0】 创建知识分类与访问策略
+         * @description 创建知识分类与访问策略。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["create_category_api_v1_knowledge_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 预览知识分段
+         * @description 预览知识分段。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["preview_api_v1_knowledge_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 上传 UTF-8 文本
+         * @description 上传 UTF-8 文本。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["upload_api_v1_knowledge_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询授权知识
+         * @description 查询授权知识。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["documents_api_v1_knowledge_documents_get"];
+        put?: never;
+        /**
+         * 【V4.0】 保存知识草稿
+         * @description 保存知识草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["save_document_api_v1_knowledge_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/documents/{ident}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询知识版本详情
+         * @description 查询知识版本详情。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["document_api_v1_knowledge_documents__ident__get"];
+        /**
+         * 【V4.0】 编辑知识草稿
+         * @description 编辑知识草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        put: operations["update_document_api_v1_knowledge_documents__ident__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/documents/{ident}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 发布知识并生成向量
+         * @description 发布知识并生成向量。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["publish_api_v1_knowledge_documents__ident__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/documents/{ident}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * 【V4.0】 停启用知识
+         * @description 停启用知识。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        patch: operations["enable_api_v1_knowledge_documents__ident__enabled_patch"];
+        trace?: never;
+    };
+    "/api/v1/knowledge/documents/{ident}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 恢复上一已发布版本为新草稿
+         * @description 恢复上一已发布版本为新草稿。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["restore_api_v1_knowledge_documents__ident__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 授权范围内混合检索与召回测试
+         * @description 授权范围内混合检索与召回测试。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["search_knowledge_api_v1_knowledge_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询 Coo 模型配置状态
+         * @description 查询 Coo 模型配置状态。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["status_api_v1_coo_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询我的 Coo 会话
+         * @description 查询我的 Coo 会话。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["sessions_api_v1_coo_sessions_get"];
+        put?: never;
+        /**
+         * 【V4.0】 创建私人 Coo 会话
+         * @description 创建私人 Coo 会话。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["create_session_api_v1_coo_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/sessions/{ident}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询私人会话执行历史
+         * @description 查询私人会话执行历史。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["history_api_v1_coo_sessions__ident__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/sessions/{ident}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 发送目标并执行 Coo
+         * @description 发送目标并执行 Coo。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["send_api_v1_coo_sessions__ident__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/runs/{ident}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询 Coo 执行记录
+         * @description 查询 Coo 执行记录。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["run_api_v1_coo_runs__ident__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/actions/{ident}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 确认或拒绝具体业务写入建议
+         * @description 确认或拒绝具体业务写入建议。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["decide_api_v1_coo_actions__ident__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询我的业务事件
+         * @description 查询我的业务事件。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["events_api_v1_coo_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/events/simulated-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 保存明确标记的模拟履约异常
+         * @description 保存明确标记的模拟履约异常。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["simulate_api_v1_coo_events_simulated_order_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/events/{ident}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 【V4.0】 重试失败事件
+         * @description 重试失败事件。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        post: operations["retry_api_v1_coo_events__ident__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coo/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 【V4.0】 查询我的最近 Coo 执行记录
+         * @description 查询我的最近 Coo 执行记录。使用当前员工身份与现有项目权限；写操作按策略校验或等待人工确认。
+         */
+        get: operations["runs_api_v1_coo_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -854,54 +1034,6 @@ export interface components {
              */
             message: string;
             data: components["schemas"]["DepartmentRead"];
-            /** Request Id */
-            request_id?: string | null;
-        };
-        /** ApiResponse[InterviewAttachmentRead] */
-        ApiResponse_InterviewAttachmentRead_: {
-            /**
-             * Code
-             * @default OK
-             */
-            code: string;
-            /**
-             * Message
-             * @default success
-             */
-            message: string;
-            data: components["schemas"]["InterviewAttachmentRead"];
-            /** Request Id */
-            request_id?: string | null;
-        };
-        /** ApiResponse[InterviewConfirmResult] */
-        ApiResponse_InterviewConfirmResult_: {
-            /**
-             * Code
-             * @default OK
-             */
-            code: string;
-            /**
-             * Message
-             * @default success
-             */
-            message: string;
-            data: components["schemas"]["InterviewConfirmResult"];
-            /** Request Id */
-            request_id?: string | null;
-        };
-        /** ApiResponse[InterviewSessionRead] */
-        ApiResponse_InterviewSessionRead_: {
-            /**
-             * Code
-             * @default OK
-             */
-            code: string;
-            /**
-             * Message
-             * @default success
-             */
-            message: string;
-            data: components["schemas"]["InterviewSessionRead"];
             /** Request Id */
             request_id?: string | null;
         };
@@ -1063,6 +1195,22 @@ export interface components {
              */
             message: string;
             data: components["schemas"]["RequirementRead"];
+            /** Request Id */
+            request_id?: string | null;
+        };
+        /** ApiResponse[TaskCommentRead] */
+        ApiResponse_TaskCommentRead_: {
+            /**
+             * Code
+             * @default OK
+             */
+            code: string;
+            /**
+             * Message
+             * @default success
+             */
+            message: string;
+            data: components["schemas"]["TaskCommentRead"];
             /** Request Id */
             request_id?: string | null;
         };
@@ -1233,8 +1381,8 @@ export interface components {
             /** Request Id */
             request_id?: string | null;
         };
-        /** ApiResponse[list[InterviewDraftRead]] */
-        ApiResponse_list_InterviewDraftRead__: {
+        /** ApiResponse[list[TaskCommentRead]] */
+        ApiResponse_list_TaskCommentRead__: {
             /**
              * Code
              * @default OK
@@ -1246,7 +1394,7 @@ export interface components {
              */
             message: string;
             /** Data */
-            data: components["schemas"]["InterviewDraftRead"][];
+            data: components["schemas"]["TaskCommentRead"][];
             /** Request Id */
             request_id?: string | null;
         };
@@ -1278,10 +1426,47 @@ export interface components {
             /** Requirement Ids */
             requirement_ids: string[];
         };
-        /** Body_upload_interview_attachment_api_v1_interviews_attachments_post */
-        Body_upload_interview_attachment_api_v1_interviews_attachments_post: {
+        /** Body_upload_api_v1_knowledge_upload_post */
+        Body_upload_api_v1_knowledge_upload_post: {
             /** File */
             file: string;
+        };
+        /** CategoryCreate */
+        CategoryCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "ENTERPRISE" | "PROJECT";
+            /** Project Id */
+            project_id?: string | null;
+            /**
+             * Access Policy
+             * @enum {string}
+             */
+            access_policy: "ALL_MEMBERS" | "DEPARTMENT" | "PROJECT_MEMBERS";
+            /** Department Id */
+            department_id?: string | null;
+        };
+        /** ChunkSettings */
+        ChunkSettings: {
+            /**
+             * Separator
+             * @default
+             */
+            separator: string;
+            /**
+             * Target Chars
+             * @default 600
+             */
+            target_chars: number;
+            /**
+             * Overlap Chars
+             * @default 80
+             */
+            overlap_chars: number;
         };
         /** CurrentUserRead */
         CurrentUserRead: {
@@ -1299,6 +1484,14 @@ export interface components {
              * Format: date-time
              */
             created_time: string;
+        };
+        /** Decision */
+        Decision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "APPROVE" | "REJECT";
         };
         /** DepartmentCreate */
         DepartmentCreate: {
@@ -1349,225 +1542,36 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** DifyInterviewField */
-        DifyInterviewField: {
-            /** Value */
-            value: string;
-            /** Evidence Message Ids */
-            evidence_message_ids: string[];
+        /** DocumentSave */
+        DocumentSave: {
+            /** Content */
+            content: string;
+            settings?: components["schemas"]["ChunkSettings"];
+            /** Title */
+            title: string;
+            /** Category Id */
+            category_id: string;
             /**
-             * Source
-             * @enum {string}
+             * Expected Revision
+             * @default 0
              */
-            source: "USER_INPUT" | "USER_EDIT";
+            expected_revision: number;
+            /** Effective From */
+            effective_from?: string | null;
+            /** Effective Until */
+            effective_until?: string | null;
         };
-        /** DifyInterviewQuestion */
-        DifyInterviewQuestion: {
-            /** Text */
-            text: string;
-            /**
-             * Target Field
-             * @enum {string}
-             */
-            target_field: "target_user" | "usage_scenario" | "user_goal" | "current_problem" | "expected_result" | "proposed_solution" | "frequency" | "impact_scope" | "bug_steps" | "actual_result" | "environment";
-            /**
-             * Reason Code
-             * @enum {string}
-             */
-            reason_code: "MISSING_CORE_FIELD" | "MISSING_BUG_FIELD" | "CLARIFY_CONFLICT" | "SEPARATE_PROBLEM_FROM_SOLUTION" | "CLARIFY_MULTIPLE_REQUESTS" | "MISSING_RECOMMENDED_FIELD";
+        /** EnableInput */
+        EnableInput: {
+            /** Expected Revision */
+            expected_revision: number;
+            /** Enabled */
+            enabled: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /** InterviewActionRequest */
-        InterviewActionRequest: {
-            /** Client Message Id */
-            client_message_id: string;
-        };
-        /**
-         * InterviewActionType
-         * @enum {string}
-         */
-        InterviewActionType: "INITIAL" | "ANSWER" | "SKIP" | "UNKNOWN" | "DIRECT_SUMMARY";
-        /** InterviewAttachmentRead */
-        InterviewAttachmentRead: {
-            /** Id */
-            id: string;
-            /** Session Id */
-            session_id: string | null;
-            /** Message Id */
-            message_id: string | null;
-            /** Uploaded By */
-            uploaded_by: string | null;
-            /** Original Name */
-            original_name: string;
-            /** Mime Type */
-            mime_type: string;
-            /** Size Bytes */
-            size_bytes: number;
-            /** Sha256 */
-            sha256: string;
-            /** Preview Url */
-            preview_url: string;
-            /**
-             * Created Time
-             * Format: date-time
-             */
-            created_time: string;
-        };
-        /** InterviewConfirmRequest */
-        InterviewConfirmRequest: {
-            /** Idempotency Key */
-            idempotency_key: string;
-        };
-        /** InterviewConfirmResult */
-        InterviewConfirmResult: {
-            session: components["schemas"]["InterviewSessionRead"];
-            requirement: components["schemas"]["RequirementRead"];
-        };
-        /** InterviewCreate */
-        InterviewCreate: {
-            /** Project Id */
-            project_id: string;
-            /**
-             * Raw Content
-             * @default
-             */
-            raw_content: string;
-            /** Client Message Id */
-            client_message_id: string;
-            /** Attachment Ids */
-            attachment_ids?: string[];
-        };
-        /** InterviewDraftRead */
-        InterviewDraftRead: {
-            /** Id */
-            id: string;
-            /** Project Id */
-            project_id: string;
-            status: components["schemas"]["InterviewStatus"];
-            /** Raw Content */
-            raw_content: string;
-            /** Summary Title */
-            summary_title: string | null;
-            /** Round Count */
-            round_count: number;
-            /**
-             * Updated Time
-             * Format: date-time
-             */
-            updated_time: string;
-        };
-        /** InterviewMessageCreate */
-        InterviewMessageCreate: {
-            /**
-             * Content
-             * @default
-             */
-            content: string;
-            /** Client Message Id */
-            client_message_id: string;
-            /** Attachment Ids */
-            attachment_ids?: string[];
-        };
-        /** InterviewMessageRead */
-        InterviewMessageRead: {
-            /** Id */
-            id: string;
-            /** Session Id */
-            session_id: string;
-            /** Sequence No */
-            sequence_no: number;
-            role: components["schemas"]["InterviewMessageRole"];
-            /** Content */
-            content: string;
-            action_type: components["schemas"]["InterviewActionType"] | null;
-            /** Target Field */
-            target_field: string | null;
-            /** Reason Code */
-            reason_code: string | null;
-            /** Client Message Id */
-            client_message_id: string | null;
-            /** Agent Run Id */
-            agent_run_id: string | null;
-            /** Attachments */
-            attachments: components["schemas"]["InterviewAttachmentRead"][];
-            /**
-             * Created Time
-             * Format: date-time
-             */
-            created_time: string;
-        };
-        /**
-         * InterviewMessageRole
-         * @enum {string}
-         */
-        InterviewMessageRole: "USER" | "AGENT" | "SYSTEM_EVENT";
-        /** InterviewSessionRead */
-        InterviewSessionRead: {
-            /** Id */
-            id: string;
-            /** Project Id */
-            project_id: string;
-            /** Created By */
-            created_by: string | null;
-            source_channel: components["schemas"]["SourceChannel"];
-            project_resolve_mode: components["schemas"]["ProjectResolveMode"];
-            status: components["schemas"]["InterviewStatus"];
-            /** Raw Content */
-            raw_content: string;
-            request_type: components["schemas"]["RequirementType"] | null;
-            /** Current Card */
-            current_card: {
-                [key: string]: components["schemas"]["DifyInterviewField"] | null;
-            };
-            /** Skipped Fields */
-            skipped_fields: ("target_user" | "usage_scenario" | "user_goal" | "current_problem" | "expected_result" | "proposed_solution" | "frequency" | "impact_scope" | "bug_steps" | "actual_result" | "environment")[];
-            /** Completeness Score */
-            completeness_score: number;
-            /** Round Count */
-            round_count: number;
-            /** Consecutive Skip Count */
-            consecutive_skip_count: number;
-            /** Stop Reason */
-            stop_reason: string | null;
-            /** Summary Title */
-            summary_title: string | null;
-            /** Clarified Content */
-            clarified_content: string | null;
-            /** Requirement Id */
-            requirement_id: string | null;
-            current_question: components["schemas"]["DifyInterviewQuestion"] | null;
-            /** Messages */
-            messages: components["schemas"]["InterviewMessageRead"][];
-            /** Agent Error Code */
-            agent_error_code: string | null;
-            /**
-             * Created Time
-             * Format: date-time
-             */
-            created_time: string;
-            /**
-             * Updated Time
-             * Format: date-time
-             */
-            updated_time: string;
-        };
-        /**
-         * InterviewStatus
-         * @enum {string}
-         */
-        InterviewStatus: "DRAFT" | "INTERVIEWING" | "CONFIRMING" | "SUBMITTED" | "ABANDONED" | "FAILED";
-        /** InterviewSummaryUpdate */
-        InterviewSummaryUpdate: {
-            /** Fields */
-            fields: {
-                [key: string]: string | null;
-            };
-            /** Summary Title */
-            summary_title?: string | null;
         };
         /** InvitationCreate */
         InvitationCreate: {
@@ -1610,6 +1614,16 @@ export interface components {
          * @enum {string}
          */
         InvitationStatus: "UNUSED" | "USED" | "DISABLED";
+        /** MessageCreate */
+        MessageCreate: {
+            /** Content */
+            content: string;
+            /**
+             * Allow Comments
+             * @default false
+             */
+            allow_comments: boolean;
+        };
         /** PageData[DepartmentRead] */
         PageData_DepartmentRead_: {
             /** Items */
@@ -1664,6 +1678,12 @@ export interface components {
             page: number;
             /** Page Size */
             page_size: number;
+        };
+        /** Preview */
+        Preview: {
+            /** Content */
+            content: string;
+            settings?: components["schemas"]["ChunkSettings"];
         };
         /** ProjectCreate */
         ProjectCreate: {
@@ -1759,11 +1779,6 @@ export interface components {
              */
             updated_time: string;
         };
-        /**
-         * ProjectResolveMode
-         * @enum {string}
-         */
-        ProjectResolveMode: "USER_SELECTED" | "ENTRY_BOUND" | "CHANNEL_MAPPED";
         /**
          * ProjectStatus
          * @enum {string}
@@ -1874,6 +1889,38 @@ export interface components {
          * @enum {string}
          */
         RequirementType: "NEW_FEATURE" | "BUG" | "OPTIMIZATION";
+        /** RevisionInput */
+        RevisionInput: {
+            /** Expected Revision */
+            expected_revision: number;
+        };
+        /** SearchInput */
+        SearchInput: {
+            /** Query */
+            query: string;
+            /** Project Id */
+            project_id?: string | null;
+            /**
+             * Top K
+             * @default 5
+             */
+            top_k: number;
+            /**
+             * Min Score
+             * @default 0
+             */
+            min_score: number;
+        };
+        /** SessionCreate */
+        SessionCreate: {
+            /** Project Id */
+            project_id?: string | null;
+            /**
+             * Title
+             * @default 与 Coo 协作
+             */
+            title: string;
+        };
         /** SessionCreateRequest */
         SessionCreateRequest: {
             /** Department Id */
@@ -1886,11 +1933,59 @@ export interface components {
              */
             shared_password: string;
         };
-        /**
-         * SourceChannel
-         * @enum {string}
-         */
-        SourceChannel: "MANAGEMENT_WEB" | "PRODUCT_WEB" | "MINI_PROGRAM" | "WECHAT" | "WECOM" | "FEISHU" | "OTHER";
+        /** SimulatedOrderEvent */
+        SimulatedOrderEvent: {
+            /** Project Id */
+            project_id: string;
+            /** Order Id */
+            order_id: string;
+            /**
+             * Hours Waiting
+             * @default 72
+             */
+            hours_waiting: number;
+            /**
+             * Warehouse
+             * @default 模拟杭州一号仓
+             */
+            warehouse: string;
+        };
+        /** TaskCommentCreate */
+        TaskCommentCreate: {
+            /** Content */
+            content: string;
+            /** Parent Id */
+            parent_id?: string | null;
+        };
+        /** TaskCommentRead */
+        TaskCommentRead: {
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string;
+            /** Task Id */
+            task_id: string;
+            /** Author Id */
+            author_id: string;
+            /** Author Name */
+            author_name: string;
+            /**
+             * Actor Type
+             * @enum {string}
+             */
+            actor_type: "HUMAN" | "COO";
+            /** Parent Id */
+            parent_id: string | null;
+            /** Content */
+            content: string;
+            /** Agent Run Id */
+            agent_run_id: string | null;
+            /**
+             * Created Time
+             * Format: date-time
+             */
+            created_time: string;
+        };
         /** TaskCreate */
         TaskCreate: {
             /** Name */
@@ -3207,39 +3302,6 @@ export interface operations {
             };
         };
     };
-    get_requirement_interview_api_v1_requirements__requirement_id__interview_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                requirement_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     reserve_batch_analysis_api_v1_requirements_batch_analyze_post: {
         parameters: {
             query?: never;
@@ -3275,148 +3337,14 @@ export interface operations {
             };
         };
     };
-    create_interview_api_v1_interviews_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_interview_drafts_api_v1_interviews_drafts_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_list_InterviewDraftRead__"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    upload_interview_attachment_api_v1_interviews_attachments_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_upload_interview_attachment_api_v1_interviews_attachments_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewAttachmentRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    preview_interview_attachment_api_v1_interviews_attachments__attachment_id__content_get: {
+    analyze_requirement_api_v1_requirements__requirement_id__analyze_post: {
         parameters: {
             query?: never;
             header?: {
                 "X-CSRF-Token"?: string | null;
             };
             path: {
-                attachment_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_interview_api_v1_interviews__session_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
+                requirement_id: string;
             };
             cookie?: never;
         };
@@ -3428,258 +3356,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    answer_interview_api_v1_interviews__session_id__messages_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewMessageCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    skip_interview_question_api_v1_interviews__session_id__actions_skip_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    mark_interview_unknown_api_v1_interviews__session_id__actions_unknown_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewActionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    summarize_interview_api_v1_interviews__session_id__actions_summarize_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_interview_summary_api_v1_interviews__session_id__summary_patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewSummaryUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    confirm_interview_api_v1_interviews__session_id__confirm_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterviewConfirmRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewConfirmResult_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    abandon_interview_api_v1_interviews__session_id__abandon_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-CSRF-Token"?: string | null;
-            };
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_InterviewSessionRead_"];
+                    "application/json": components["schemas"]["ApiResponse_RequirementRead_"];
                 };
             };
             /** @description Validation Error */
@@ -3961,6 +3638,870 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiResponse_PageData_UserRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_comments_api_v1_projects__project_id__tasks__task_id__comments_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                before?: string | null;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_list_TaskCommentRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_comment_api_v1_projects__project_id__tasks__task_id__comments_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                project_id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCommentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiResponse_TaskCommentRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    categories_api_v1_knowledge_categories_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_category_api_v1_knowledge_categories_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_v1_knowledge_preview_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Preview"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_v1_knowledge_upload_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_api_v1_knowledge_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    documents_api_v1_knowledge_documents_get: {
+        parameters: {
+            query?: {
+                project_id?: string | null;
+            };
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_document_api_v1_knowledge_documents_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_api_v1_knowledge_documents__ident__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_document_api_v1_knowledge_documents__ident__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_api_v1_knowledge_documents__ident__publish_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enable_api_v1_knowledge_documents__ident__enabled_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnableInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_api_v1_knowledge_documents__ident__restore_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_knowledge_api_v1_knowledge_search_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_api_v1_coo_status_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sessions_api_v1_coo_sessions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_session_api_v1_coo_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_api_v1_coo_sessions__ident__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_api_v1_coo_sessions__ident__messages_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_api_v1_coo_runs__ident__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_v1_coo_actions__ident__decision_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Decision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_api_v1_coo_events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    simulate_api_v1_coo_events_simulated_order_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulatedOrderEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_api_v1_coo_events__ident__retry_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path: {
+                ident: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    runs_api_v1_coo_runs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-CSRF-Token"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

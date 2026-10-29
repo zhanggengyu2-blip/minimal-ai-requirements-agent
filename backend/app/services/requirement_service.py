@@ -43,6 +43,13 @@ class RequirementService:
             ),
         )
         self.db.add(requirement)
+        self.db.flush()
+        from app.coo.events import enqueue
+        # Legacy service fixtures can have non-account author IDs; public APIs always use authenticated accounts.
+        if self.db.get(UserAccount, created_by):
+            enqueue(self.db, key=f'requirement.created:{requirement.id}', event_type='REQUIREMENT_CREATED',
+                project_id=requirement.project_id, actor_id=created_by,
+                payload={'requirement_id':requirement.id,'analysis_requested':payload.analyze_with_ai})
         self.db.commit()
         self.db.refresh(requirement)
 

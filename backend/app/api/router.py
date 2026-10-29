@@ -39,3 +39,6 @@ api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledg
 
 from app.api.routes import coo
 api_router.include_router(coo.router, prefix="/coo", tags=["coo"])
+
+from app.api.routes import coo_events
+api_router.include_router(coo_events.router, prefix="/coo", tags=["coo-events"])

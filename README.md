@@ -1,71 +1,70 @@
-# 极简 AI 团队需求管理智能体
+# 企业 AI 协作系统 V4.0 — Coo 企业 AI 同事
 
-当前下一版本暂定为 **V4.0：留言 + 项目知识库 + LangGraph 技术迁移**，优先推进已有知识库的迁移复用。版本讨论请先查看[当前版本计划](product/当前版本计划.md)（更新于 2026-10-19）；V3.0 团队任务与版本排期属于已有版本范围。
+基于原需求管理应用增量升级：保留项目、需求、团队任务、成员权限、版本排期与甘特图；新增任务留言/回复、企业与项目知识库、真实模型工具调用、私人 Coo 会话、操作确认和主动业务事件。
 
-前后端使用稳定的职能目录持续迭代，产品、设计和技术文档保留各版本基线。当前代码包含需求分析、访谈后端，以及 V3.0 身份、项目成员、团队任务、版本排期和甘特图；访谈工作台仍为界面原型。
+当前实际目录为 `backend/app` 与 `frontend/src`。不需要 Dify、Docker、Redis、Celery、OpenSearch。访谈入口与 API 已下线，源码、历史表和迁移保留。
 
-## 目录导航
+## 启动
 
-```text
-frontend/
-├── src/                   # Vue 3 页面、组件、路由与接口
-└── e2e/                   # 前后端闭环验收
-backend/
-├── app/                   # FastAPI 后端
-├── migrations/            # Alembic 数据库迁移
-├── tests/                 # 后端测试
-├── docs/                  # 运行、接口与代码说明
-└── data/                  # 本地数据库与附件，不纳入 Git
-product/v3.0/              # V3.0 产品基线
-design/v3.0/               # V3.0 设计基线
-technical/v3.0/            # V3.0 技术基线
-dify-rag/                  # 通用需求分析规则与输出契约
-```
-
-早期 PRD、Dify 设计文档与业务流程保留在仓库根目录。
-
-## 启动后端
+Python 3.12、Node.js 24 与 pnpm 11。后端依赖沿用现有项目，未引入 Agent 框架。
 
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[dev]'
-cp .env.example .env
-python -m alembic upgrade head
-python -m app.db.seed
-python scripts/bootstrap_admin.py --department 产品部 --name 管理员姓名
-python -m uvicorn app.main:app --reload
+python3.12 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -e 'backend[dev]'
+cp backend/.env.example backend/.env
 ```
 
-`.env` 已随项目移动到 `backend/`。Python 虚拟环境在移动目录后建议重新创建，避免入口脚本保留旧的绝对路径。
+已有 `.env` 和数据库请保留；不要执行覆盖命令。升级已有数据库前备份 `backend/data/`。在 `backend/.env` 中设置公司统一密码 `SHARED_PASSWORD`、独立随机 `AUTH_HMAC_KEY` 与 `INVITATION_ENCRYPTION_KEY`。例如可用 `python3 -c "import secrets; print(secrets.token_urlsafe(48))"` 分别生成密钥。
 
-默认 SQLite 数据库和访谈图片目录也固定在 `backend/data/` 下，不会因为从其他目录调用后端而改变。若确实需要从仓库根目录启动，可使用：
+配置 `COO_BASE_URL`、`COO_API_KEY`、`COO_MODEL`。模型接口需要支持 Chat Completions、Tool Calling 与 JSON 输出；Key 仅由服务端读取。知识发布还需要 `KNOWLEDGE_EMBEDDING_*`；重排序使用可选 `KNOWLEDGE_RERANK_*`。未配置模型时系统明确报告错误，业务数据仍然保存，没有规则结果冒充 LLM 的演示模式。
 
 ```bash
-python -m uvicorn app.main:app --app-dir backend --reload
+# 自动执行增量迁移、部门初始化；同时启动 API 与主动事件后台进程
+backend/.venv/bin/python backend/scripts/run_v4.py
 ```
 
-## 启动前端
+首次使用另开终端创建管理员（已有管理员无需重复）：
 
 ```bash
-cd frontend
-pnpm install
-pnpm run generate:api
-pnpm run dev
+backend/.venv/bin/python backend/scripts/bootstrap_admin.py --department 产品部 --name 演示管理员
 ```
 
-Apifox 优先导入 `backend/docs/openapi-v3.0-apifox.json`，或在后端启动后通过 `http://127.0.0.1:8000/openapi.json` 导入。
+原前端：
 
-更详细的运行与接口说明见：
+```bash
+pnpm --dir frontend install --frozen-lockfile
+pnpm --dir frontend dev
+```
 
-- `frontend/README.md`
-- `backend/README.md`
-- `backend/docs/`
+打开 [应用](http://127.0.0.1:3000)、[接口文档](http://127.0.0.1:8000/docs)。管理员使用对应部门、姓名和公司统一密码登录，邀请员工、创建项目和添加项目成员。单独部署 API 时，可分别运行 `python -m uvicorn app.main:app` 与 `python -m app.coo.worker`（工作目录均为 backend）。关闭 Worker 仅暂停事件处理，队列仍保存在数据库。
 
-## 版本归档约定
+## 功能与边界
 
-- 已确定版本的产品文档、设计稿和 Agent 配置放入对应版本目录。
-- 当前代码始终放在 `backend/`、`frontend/`，不随产品版本移动或复制。
-- 新版本立项时，为产品、设计和技术基线新增对应版本目录；不要覆盖旧版本资料。
-- 代码发布版本通过 Git 标签与发布说明记录；历史文档版本、数据库迁移编号和 API 路径按各自用途维护。
+- 任务留言/回复独立关联真实任务；保留 Task revision 并发控制。Coo 留言有 AI 身份与运行 ID，员工请求不能伪造该身份。
+- 企业知识由管理员显式选择全员或指定部门可读；项目知识沿用项目权限。支持分类、UTF-8 `.txt/.md` 上传、分段预览、草稿、发布、版本恢复、有效期和停启用。新版本发布失败保留旧有效版本。
+- SQLite 保存向量，Python 完成小规模关键词与向量混合检索、RRF 融合、可选 Rerank 和来源校验。未配置或失败的能力会说明降级情况。
+- Coo 根据目标自主选择有 Schema 的业务工具；不允许任意 SQL。默认写入产生具体待确认建议，确认时重新检查权限。员工本轮明确授权的留言可自动执行。需求分析按钮调用确定性的十字段工作流，Coo 也复用它。
+- 员工私人会话、执行日志及确认归属相互隔离；项目任务和留言是共享业务事实。当前是单企业部署，没有多企业租户管理。
+- 新需求、员工任务修改/留言和模拟履约异常会保存事件，由后台进程主动调查；支持去重、租约恢复、失败原因与人工重试。Coo 留言不触发自回复循环。
+- 模拟 ERP 适配器明确标记来源，未连接真实 ERPNext。未实现完整 Goal/Plan/长期 Memory、流式输出或生产规模检索。
+
+## 验证与演示
+
+```bash
+cd backend && .venv/bin/python -m pytest -q
+```
+
+```bash
+pnpm --dir frontend test
+pnpm --dir frontend build
+pnpm --dir frontend test:e2e
+```
+
+端到端测试需要独立临时数据库和测试管理员，参照 `.github/workflows/quality.yml`，不要对个人业务库运行。自动化模型测试使用受控响应；真实模型连通性与质量验证需要自行配置服务端 Key。
+
+- [审计与实施计划](docs/v4/IMPLEMENTATION.md)
+- [面试演示脚本](docs/v4/DEMO.md)
+- [验收记录与已知限制](docs/v4/ACCEPTANCE.md)
+- [第三方来源与许可](THIRD_PARTY_NOTICES.md)
+
+知识库复用 [AI 电商智能客服](https://github.com/zhanggengyu2-blip/ai-ecommerce-customer-service) 的 foundation 实现与测试思路；其 AgentServe 上游 Apache 2.0 许可证随仓库保留，第三方原始实现不计作本项目原创。

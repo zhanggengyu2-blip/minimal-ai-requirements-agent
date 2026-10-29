@@ -185,6 +185,10 @@ class TaskService:
             assignee_id,
             updated_by=actor.id,
         )
+        from app.coo.events import enqueue
+        enqueue(self.db, key=f'task.updated:{task.id}:{payload.expected_revision+1}', event_type='TASK_UPDATED',
+            project_id=project_id, actor_id=actor.id, payload={'task_id':task.id,'revision':payload.expected_revision+1,
+                'changed_fields':list(payload.model_fields_set-{'expected_revision'})})
         self.db.commit()
         refreshed = self.db.get(Task, task.id)
         if refreshed is None:

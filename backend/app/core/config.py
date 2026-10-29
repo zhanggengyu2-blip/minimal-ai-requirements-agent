@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     coo_max_output_tokens: int = Field(default=1500, ge=128, le=4000)
     coo_token_budget: int = Field(default=48000, ge=2000, le=200000)
     coo_context_chars: int = Field(default=18000, ge=4000, le=60000)
+    coo_event_poll_seconds: float = Field(default=2, ge=0.2, le=60)
+    coo_event_max_attempts: int = Field(default=5, ge=1, le=10)
     coo_candidate_limit: int = Field(default=30, ge=0, le=100)
 
     knowledge_embedding_base_url: str = "https://api.openai.com/v1"

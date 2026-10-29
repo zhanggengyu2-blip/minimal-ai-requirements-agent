@@ -15,6 +15,7 @@ export const router = createRouter({
       component: () => import('../layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
+        { path: 'coo/events', name: 'coo-events', component: () => import('../views/CooEventsView.vue') },
         { path: 'coo', name: 'coo', component: () => import('../views/CooView.vue') },
         { path: 'knowledge', name: 'knowledge', component: () => import('../views/KnowledgeView.vue') },
         { path: '', redirect: { name: 'projects' } },

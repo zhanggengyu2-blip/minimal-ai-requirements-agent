@@ -1,3 +1,4 @@
+import type { LegacyComponents } from './legacyInterview'
 import { http } from './http'
 import type { components, operations } from './generated'
 
@@ -20,8 +21,8 @@ export type DepartmentUpdate = components['schemas']['DepartmentUpdate']
 export type Invitation = components['schemas']['InvitationRead']
 export type InvitationCreate = components['schemas']['InvitationCreate']
 export type InvitationStatus = components['schemas']['InvitationStatus']
-export type InterviewSession = components['schemas']['InterviewSessionRead']
-export type InterviewMessage = components['schemas']['InterviewMessageRead']
+export type InterviewSession = LegacyComponents['schemas']['InterviewSessionRead']
+export type InterviewMessage = LegacyComponents['schemas']['InterviewMessageRead']
 export type CurrentUser = components['schemas']['CurrentUserRead']
 export type AuthSession = components['schemas']['AuthSessionRead']
 export type LoginRequest = components['schemas']['SessionCreateRequest']

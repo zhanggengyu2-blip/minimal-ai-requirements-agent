@@ -24,6 +24,9 @@ class TaskArgs(ProjectArgs): task_id: str=Field(min_length=32,max_length=32)
 class CommentArgs(TaskArgs):
     content: str=Field(min_length=1,max_length=4000)
     parent_id: str|None=Field(default=None,min_length=32,max_length=32)
+class SimulatedOrderArgs(ProjectArgs):
+    order_id: str=Field(min_length=3,max_length=64)
+
 class CreateTaskArgs(ProjectArgs):
     name: str=Field(min_length=1,max_length=200)
     assignee_id: str=Field(min_length=32,max_length=32)
@@ -37,6 +40,7 @@ class Tool:
     risk: str='READ'
 
 REGISTRY={
+ 'get_simulated_order':Tool(SimulatedOrderArgs,'查询演示用模拟 ERP 订单事实，必须标记为模拟。尚未接入真实 ERPNext。'),
  'list_projects':Tool(Empty,'查询当前员工可访问的项目，最多30个。'),
  'get_project_context':Tool(ProjectArgs,'查询项目业务上下文和真实成员，创建任务前用此获取负责人ID。'),
  'list_requirements':Tool(RequirementListArgs,'查询一个项目最近20条需求，可按关键词筛选。'),
@@ -66,6 +70,9 @@ class BusinessTools:
 
     async def execute(self,name,args,*,run_id=None,commit=True):
         db,actor=self.db,self.actor
+        if name=='get_simulated_order':
+            from .events import EventService
+            return EventService(db,actor).simulated_order(args['project_id'],args['order_id'])
         if name=='list_projects':
             items,total=ProjectService(db).list(actor=actor,page=1,page_size=30,status=None)
             return {'items':[v.model_dump(mode='json') for v in items],'total':total}
