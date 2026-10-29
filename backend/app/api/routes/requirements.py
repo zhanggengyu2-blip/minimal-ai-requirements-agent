@@ -128,3 +128,11 @@ def reserve_batch_analysis(
         data=data,
         request_id=request.state.request_id,
     )
+
+@router.post("/{requirement_id}/analyze", response_model=ApiResponse[RequirementRead])
+async def analyze_requirement(requirement_id: str, request: Request, db: DbSession):
+    service = RequirementService(db)
+    requirement = service.get_visible(requirement_id, actor=request.state.current_user)
+    ProjectService(db).require_writable(requirement.project_id, actor=request.state.current_user)
+    result = await service.analyze_existing(requirement, user=request.state.current_user.id)
+    return ApiResponse(data=RequirementRead.model_validate(result), request_id=request.state.request_id)

@@ -44,6 +44,17 @@ class Settings(BaseSettings):
     csrf_header_name: str = "X-CSRF-Token"
     csrf_enabled: bool = True
 
+    coo_base_url: str = "https://api.openai.com/v1"
+    coo_api_key: str = ""
+    coo_model: str = ""
+    coo_timeout_seconds: float = Field(default=30, gt=0, le=120)
+    coo_run_timeout_seconds: float = Field(default=90, gt=0, le=300)
+    coo_max_rounds: int = Field(default=6, ge=1, le=12)
+    coo_max_output_tokens: int = Field(default=1500, ge=128, le=4000)
+    coo_token_budget: int = Field(default=48000, ge=2000, le=200000)
+    coo_context_chars: int = Field(default=18000, ge=4000, le=60000)
+    coo_candidate_limit: int = Field(default=30, ge=0, le=100)
+
     knowledge_embedding_base_url: str = "https://api.openai.com/v1"
     knowledge_embedding_api_key: str = ""
     knowledge_embedding_model: str = ""

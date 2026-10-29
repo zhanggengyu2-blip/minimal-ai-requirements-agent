@@ -287,7 +287,7 @@ def test_archive_is_readonly_and_member_can_reopen(db_session):
         assert archived.status_code == 200
 
         with patch(
-            "app.services.dify_service.DifyService.analyze_requirement",
+            "app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement",
             new=AsyncMock(),
         ) as analyze:
             requirement = client.post(

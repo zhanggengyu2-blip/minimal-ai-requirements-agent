@@ -167,7 +167,14 @@ const initialize = async () => {
 
 watch(projectId, () => void initialize())
 watch(status, () => void load())
-onMounted(initialize)
+const openLinkedTask = async () => {
+  const id = route.query?.task_id
+  if (typeof id === 'string' && projectId.value) {
+    try { openTask(await taskApi.detail(projectId.value, id)) } catch { /* API displays permission errors. */ }
+  }
+}
+watch(() => route.query?.task_id, () => void openLinkedTask())
+onMounted(async () => { await initialize(); await openLinkedTask() })
 onBeforeUnmount(() => clearTimeout(searchTimer))
 onBeforeRouteLeave((to) => {
   const staysInModule = ['project-task-board', 'project-task-gantt'].includes(String(to.name || ''))

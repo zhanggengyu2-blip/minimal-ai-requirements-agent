@@ -55,6 +55,7 @@ const showDetail = async (id: string) => {
     if (version === detailVersion) detailLoading.value = false
   }
 }
+watch(() => route.query.requirement_id, (id) => { if (typeof id === 'string') void showDetail(id) }, { immediate: true })
 </script>
 
 <template>
@@ -77,5 +78,7 @@ const showDetail = async (id: string) => {
     :requirement="detail"
     :projects="shell.projects.value"
     :loading="detailLoading"
+    :read-only="access.readOnly.value"
+    @analyzed="value => { detail = value; void afterCreated() }"
   />
 </template>

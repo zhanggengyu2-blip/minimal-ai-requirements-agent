@@ -1,8 +1,9 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import ElementPlus from 'element-plus'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiRequestError } from '../api/http'
 import TaskDialog from './TaskDialog.vue'
+vi.mock('../api/taskComments', () => ({ commentApi: { list: vi.fn().mockResolvedValue([]), create: vi.fn() } }))
 
 const member = {
   user_id: 'a'.repeat(32),

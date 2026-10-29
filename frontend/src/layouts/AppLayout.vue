@@ -100,7 +100,8 @@ onMounted(refreshProjects)
 <template>
   <div class="app-shell routed-app-shell">
     <header class="topbar app-topbar">
-      <RouterLink class="brand brand-link" :to="{ name: 'projects' }">极简 AI 团队需求管理智能体</RouterLink>
+      <RouterLink class="brand brand-link" :to="{ name: 'projects' }">Coo 企业 AI 协作系统</RouterLink>
+      <RouterLink class="interview-entry" :to="{ name: 'coo', query: { project_id: route.params.projectId } }">Coo AI 同事</RouterLink>
       <RouterLink class="interview-entry" :to="{ name: 'knowledge' }">知识库</RouterLink>
       <el-dropdown trigger="click" class="user-menu">
         <button type="button" class="user-menu-trigger">

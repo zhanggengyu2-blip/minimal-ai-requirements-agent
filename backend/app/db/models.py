@@ -632,3 +632,4 @@ class TaskComment(Base):
 
 # Register independent business modules in the shared SQLAlchemy metadata.
 from app.knowledge import models as knowledge_models  # noqa: E402,F401
+from app.coo import models as coo_models  # noqa: E402,F401

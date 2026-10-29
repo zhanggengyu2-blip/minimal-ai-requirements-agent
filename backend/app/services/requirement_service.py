@@ -16,13 +16,15 @@ from app.db.models import (
     UserRole,
 )
 from app.schemas.requirement import RequirementCreate
-from app.services.dify_service import DifyService
+from app.coo.analysis import RequirementAnalysisWorkflow
+from app.schemas.analysis import AnalysisResult
+from pydantic import ValidationError
 
 
 class RequirementService:
-    def __init__(self, db: Session, dify: DifyService | None = None) -> None:
+    def __init__(self, db: Session, dify=None) -> None:
         self.db = db
-        self.dify = dify or DifyService()
+        self.dify = dify or RequirementAnalysisWorkflow(db)
         self.settings = get_settings()
 
     def create(
@@ -123,7 +125,17 @@ class RequirementService:
                 raw_content=requirement.clarified_content or requirement.raw_content,
                 candidates=candidates,
                 user=user,
+                **({"project_id": project.id, "requirement_id": requirement.id} if isinstance(self.dify, RequirementAnalysisWorkflow) else {}),
             )
+            validated = AnalysisResult.model_validate(result.analysis.model_dump())
+            if validated.is_duplicate and validated.related_id not in {item["id"] for item in candidates}:
+                raise AppError("关联需求不属于当前项目候选范围", code="COO_ANALYSIS_INVALID", status_code=422)
+        except (ValidationError, ValueError):
+            requirement.analysis_status = AnalysisStatus.FAILED
+            requirement.analysis_error_code = "COO_ANALYSIS_INVALID"
+            requirement.analysis_error_message = "分析结果未通过结构校验，原始需求已保存"
+            self.db.commit()
+            return requirement
         except AppError as exc:
             requirement.analysis_status = AnalysisStatus.FAILED
             requirement.analysis_error_code = exc.code
@@ -132,7 +144,7 @@ class RequirementService:
             self.db.refresh(requirement)
             return requirement
 
-        analysis = result.analysis
+        analysis = validated
         for field, value in analysis.model_dump().items():
             if field == "type":
                 value = RequirementType(value)
@@ -231,7 +243,7 @@ class RequirementService:
         Dependency：
             直接使用数据库 Session 和已加载的配置；只读取数据库，不提交修改或调用外部服务。
         """
-        limit = self.settings.dify_candidate_limit
+        limit = self.settings.coo_candidate_limit
         if limit == 0:
             return []
         rows = self.db.execute(

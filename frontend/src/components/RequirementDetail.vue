@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { CircleCheck, InfoFilled, Loading, Warning, MagicStick } from '@element-plus/icons-vue'
-import type { Project, Requirement } from '../api'
+import { requirementApi, type Project, type Requirement } from '../api'
 import { ANALYSIS_STATUS, PRIORITY, REQUIREMENT_TYPE, formatDate, shortId } from '../constants'
 
 const props = defineProps<{
@@ -9,8 +9,18 @@ const props = defineProps<{
   requirement: Requirement | null
   projects: Project[]
   loading?: boolean
+  readOnly?: boolean
 }>()
-const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
+const emit = defineEmits<{ 'update:modelValue': [value: boolean]; analyzed: [value: Requirement] }>()
+const analyzing = ref(false)
+const analysisError = ref('')
+const analyze = async () => {
+  if (!props.requirement || props.readOnly || analyzing.value) return
+  analyzing.value = true; analysisError.value = ''
+  try { emit('analyzed', await requirementApi.analyze(props.requirement.id)) }
+  catch (e) { analysisError.value = e instanceof Error ? e.message : '分析失败' }
+  finally { analyzing.value = false }
+}
 const projectName = computed(() =>
   props.projects.find((project) => project.id === props.requirement?.project_id)?.name || '未知项目',
 )
@@ -97,7 +107,9 @@ const statusClass = computed(() => props.requirement?.analysis_status.toLowerCas
         </div>
       </template>
     </div>
+    <el-alert v-if="analysisError" :title="analysisError" type="error" />
     <template #footer>
+      <el-button v-if="requirement && !readOnly" :loading="analyzing" :disabled="['PENDING', 'ANALYZING'].includes(requirement.analysis_status)" @click="analyze">Coo 分析需求</el-button>
       <el-button type="primary" @click="emit('update:modelValue', false)">完成</el-button>
     </template>
   </el-dialog>

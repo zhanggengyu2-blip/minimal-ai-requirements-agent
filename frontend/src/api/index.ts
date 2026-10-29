@@ -117,6 +117,7 @@ export const userApi = {
 }
 
 export const requirementApi = {
+  analyze: (id: string) => http.post<never, Requirement>(`/requirements/${id}/analyze`, {}, { timeout: 120000 }),
   list: (params: RequirementListParams) =>
     http.get<never, PageData<Requirement>>('/requirements', { params }),
   create: (data: RequirementCreate) =>

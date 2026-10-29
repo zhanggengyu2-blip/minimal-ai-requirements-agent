@@ -90,7 +90,7 @@ def test_not_found_errors_use_standard_response():
 def test_requirement_create_rejects_missing_project_without_calling_dify():
     mocked = AsyncMock()
     with patch(
-        "app.services.dify_service.DifyService.analyze_requirement",
+        "app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement",
         new=mocked,
     ):
         with TestClient(app) as client:
@@ -114,7 +114,7 @@ def test_requirement_filters_and_pagination_contract():
             return_value=DifyWorkflowResult(analysis=_analysis(), workflow_run_id="filter-run")
         )
         with patch(
-            "app.services.dify_service.DifyService.analyze_requirement",
+            "app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement",
             new=mocked,
         ):
             client.post(

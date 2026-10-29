@@ -36,3 +36,6 @@ api_router.include_router(task_comments.router, prefix="/projects", tags=["task-
 
 from app.api.routes import knowledge
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["knowledge"])
+
+from app.api.routes import coo
+api_router.include_router(coo.router, prefix="/coo", tags=["coo"])

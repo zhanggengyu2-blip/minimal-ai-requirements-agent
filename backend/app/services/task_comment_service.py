@@ -27,7 +27,7 @@ class TaskCommentService:
         rows = list(self.db.scalars(query.order_by(TaskComment.created_time.desc(), TaskComment.id.desc()).limit(limit)))
         return [self._read(row) for row in reversed(rows)]
 
-    def create(self, project_id, task_id, payload: TaskCommentCreate, *, actor, agent_run_id=None):
+    def create(self, project_id, task_id, payload: TaskCommentCreate, *, actor, agent_run_id=None, commit=True):
         self.tasks.projects.require_writable(project_id, actor=actor)
         self.tasks.get(project_id, task_id, actor=actor)
         if payload.parent_id:
@@ -37,6 +37,9 @@ class TaskCommentService:
         row = TaskComment(project_id=project_id, task_id=task_id, author_id=actor.id,
             actor_type="COO" if agent_run_id else "HUMAN", agent_run_id=agent_run_id, **payload.model_dump())
         self.db.add(row)
-        self.db.commit()
+        if commit:
+            self.db.commit()
+        else:
+            self.db.flush()
         self.db.refresh(row)
         return self._read(row)

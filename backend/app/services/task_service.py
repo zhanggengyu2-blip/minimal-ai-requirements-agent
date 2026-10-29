@@ -102,6 +102,7 @@ class TaskService:
         payload: TaskCreate,
         *,
         actor: UserAccount,
+        commit: bool = True,
     ) -> Task:
         self.projects.require_writable(project_id, actor=actor)
         self._validate_assignee(project_id, payload.assignee_id)
@@ -124,7 +125,10 @@ class TaskService:
             payload.assignee_id,
             updated_by=actor.id,
         )
-        self.db.commit()
+        if commit:
+            self.db.commit()
+        else:
+            self.db.flush()
         self.db.refresh(task)
         return task
 

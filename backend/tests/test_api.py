@@ -37,7 +37,7 @@ def test_project_and_requirement_happy_path():
         project_id = project_response.json()["data"]["id"]
 
         with patch(
-            "app.services.dify_service.DifyService.analyze_requirement",
+            "app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement",
             new=AsyncMock(return_value=DifyWorkflowResult(VALID_ANALYSIS, "run-1")),
         ):
             response = client.post(
@@ -83,7 +83,7 @@ def test_dify_failure_keeps_raw_requirement():
         )
         project_id = project_response.json()["data"]["id"]
         with patch(
-            "app.services.dify_service.DifyService.analyze_requirement",
+            "app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement",
             new=AsyncMock(side_effect=DifyTimeoutError()),
         ):
             response = client.post(
@@ -107,7 +107,7 @@ def test_create_defaults_to_saved_without_any_ai_call():
             'name': '只保存项目', 'project_context': '不调用 AI',
         }).json()['data']
         mocked = AsyncMock()
-        with patch('app.services.dify_service.DifyService.analyze_requirement', new=mocked):
+        with patch('app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement', new=mocked):
             for extra in [{}, {'analyze_with_ai': False}]:
                 response = client.post('/api/v1/requirements', json={
                     'project_id': project['id'], 'raw_content': '只保存原始需求', **extra,
@@ -126,7 +126,7 @@ def test_background_unexpected_failure_preserves_saved_requirement():
         project = client.post('/api/v1/projects', json={
             'name': '后台异常项目', 'project_context': '后台异常不破坏保存响应',
         }).json()['data']
-        with patch('app.services.dify_service.DifyService.analyze_requirement',
+        with patch('app.coo.analysis.RequirementAnalysisWorkflow.analyze_requirement',
                    new=AsyncMock(side_effect=RuntimeError('test unexpected error'))):
             response = client.post('/api/v1/requirements', json={
                 'project_id': project['id'], 'raw_content': '后台异常保留原文', 'analyze_with_ai': True,

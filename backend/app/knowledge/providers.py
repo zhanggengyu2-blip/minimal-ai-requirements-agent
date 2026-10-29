@@ -1,9 +1,13 @@
 """Validated HTTP adapters adapted from foundation/providers.py. Apache-2.0."""
+import time
+from contextvars import ContextVar
 import hashlib
 import math
 import httpx
 from app.core.config import get_settings
 from app.core.exceptions import AppError
+
+request_deadline = ContextVar("knowledge_request_deadline", default=None)
 
 def fail(message, code='KNOWLEDGE_MODEL_ERROR'):
     raise AppError(message, code=code, status_code=503)
@@ -14,8 +18,11 @@ def space():
 
 def post(base, path, key, payload):
     if not key: fail('知识模型未配置 API Key，请检查服务端环境变量', 'KNOWLEDGE_MODEL_NOT_CONFIGURED')
+    deadline=request_deadline.get()
+    timeout=min(30,deadline-time.monotonic()) if deadline else 30
+    if timeout<=0:fail("检索达到本次执行时间上限")
     try:
-        with httpx.Client(timeout=30, follow_redirects=False) as client:
+        with httpx.Client(timeout=timeout, follow_redirects=False) as client:
             r = client.post(base.rstrip('/')+path, headers={'Authorization': 'Bearer '+key}, json=payload)
         r.raise_for_status()
         data = r.json()
